@@ -6,9 +6,128 @@
 </description>
     <link>http://yclin.me/</link>
     <atom:link href="http://yclin.me/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 30 May 2016 00:29:42 +0800</pubDate>
-    <lastBuildDate>Mon, 30 May 2016 00:29:42 +0800</lastBuildDate>
+    <pubDate>Mon, 13 Jun 2016 16:55:36 +0800</pubDate>
+    <lastBuildDate>Mon, 13 Jun 2016 16:55:36 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Difference between np.float64 &amp; np.float64_t</title>
+        <description>&lt;p&gt;If you are a newcomer to Cython just like me, it is probably that you will be confused by the usage time of &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64_t&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Below, I’ll briefly introduce how these two types are fundamentally different, and generalize this concept to other datatypes as well.&lt;/p&gt;
+
+&lt;p&gt;Before that, we need to know a bit of Cython.&lt;/p&gt;
+
+&lt;h2 id=&quot;cimport-in-cython&quot;&gt;cimport in Cython&lt;/h2&gt;
+
+&lt;p&gt;In Python, we use the &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; statement to access functions, objects, and classes inside other &lt;em&gt;modules&lt;/em&gt; and &lt;em&gt;packages&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Cython also fully supports the &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; statement, so it allows us to access Python objects defined in external Python modules.&lt;/p&gt;
+
+&lt;p&gt;However, note that if above were the end of the story, Cython modules would not allow to access other Cython modules’ &lt;code class=&quot;highlighter-rouge&quot;&gt;cdef&lt;/code&gt; functions, &lt;code class=&quot;highlighter-rouge&quot;&gt;ctypedef&lt;/code&gt;s, or structs, and it would not allow C-level access to other extension types.&lt;/p&gt;
+
+&lt;p&gt;To remedy this, Cython has a &lt;code class=&quot;highlighter-rouge&quot;&gt;cimport&lt;/code&gt; statement that provides &lt;strong&gt;compile time&lt;/strong&gt; access to C-level constructs, and it looks for these constructs’ declarations from separate Cython files called &lt;em&gt;definition files&lt;/em&gt;, which have a &lt;em&gt;.pxd&lt;/em&gt; extension and need to be created by us.&lt;/p&gt;
+
+&lt;p&gt;In a &lt;em&gt;.pxd&lt;/em&gt; file, we can place the &lt;em&gt;declarations&lt;/em&gt; of C-level constructs that we wish to share, and only the &lt;em&gt;declarations&lt;/em&gt; here are cimportable. Also, since &lt;code class=&quot;highlighter-rouge&quot;&gt;some_file_name.pxd&lt;/code&gt; created by us have the same base name as the original file &lt;code class=&quot;highlighter-rouge&quot;&gt;some_file_name.pyx&lt;/code&gt;, they are treated as one namespace by Cython. Therefore, we need to modify &lt;code class=&quot;highlighter-rouge&quot;&gt;some_file_name.pyx&lt;/code&gt; in order to remove the repeat declarations in it.&lt;/p&gt;
+
+&lt;p&gt;And after we have created the &lt;em&gt;.pxd&lt;/em&gt; file and clear the &lt;em&gt;.pyx&lt;/em&gt; file, now an external implementation file can access all C-level constructs inside &lt;em&gt;.pyx&lt;/em&gt; via the &lt;code class=&quot;highlighter-rouge&quot;&gt;cimport&lt;/code&gt; statement.&lt;/p&gt;
+
+&lt;p&gt;Let’s take an real-world example to see how &lt;code class=&quot;highlighter-rouge&quot;&gt;cimport&lt;/code&gt; works!&lt;/p&gt;
+
+&lt;h2 id=&quot;cimport-numpy-as-np&quot;&gt;cimport numpy as np&lt;/h2&gt;
+
+&lt;p&gt;In some files of the well-known machine library scikit-learn (such as &lt;a href=&quot;https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/utils/sparsefuncs_fast.pyx&quot;&gt;this one&lt;/a&gt;), you can find the following code snippet:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;cimport&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;I remember I was stunned when I saw these lines for the first time, WHAT IS IT?&lt;/p&gt;
+
+&lt;p&gt;Well, the good news is that we now know the basics of the &lt;code class=&quot;highlighter-rouge&quot;&gt;cimport&lt;/code&gt; statement, so we can figure it out step by step.&lt;/p&gt;
+
+&lt;p&gt;First, since only the declarations in &lt;em&gt;.pxd&lt;/em&gt; file are cimportable, we have to identify which &lt;em&gt;.pxd&lt;/em&gt; file is Cython looking when executing &lt;code class=&quot;highlighter-rouge&quot;&gt;cimport numpy as np&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;After a bit of research, we should find that a file called &lt;a href=&quot;https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;__init__.pxd&lt;/code&gt;&lt;/a&gt; lies in the &lt;a href=&quot;https://github.com/cython/cython/tree/master/Cython/Includes/numpy&quot;&gt;&lt;strong&gt;numpy&lt;/strong&gt; folder&lt;/a&gt; under our Cython installation. An &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__.pxd&lt;/code&gt; file can make Cython treat the directory as a package just like how &lt;code class=&quot;highlighter-rouge&quot;&gt;__init.py__&lt;/code&gt; works for Python (see &lt;a href=&quot;http://stackoverflow.com/questions/448271/what-is-init-py-for&quot;&gt;here&lt;/a&gt;). Therefore, in this case Cython will treat the &lt;strong&gt;numpy&lt;/strong&gt; folder as a package and give us access to Numpy’s C API defined in the &lt;a href=&quot;https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;__init__.pxd&lt;/code&gt;&lt;/a&gt; file during &lt;strong&gt;compile time&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;On the contrary, &lt;code class=&quot;highlighter-rouge&quot;&gt;import numpy as np&lt;/code&gt; will only give us access to Numpy’s pure-Python API and it occurs at &lt;strong&gt;runtime&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note that here we use the same alias (i.e., &lt;code class=&quot;highlighter-rouge&quot;&gt;np&lt;/code&gt;) for both of the imported external packages, but thanks to the almighty Cython which will internally handles this ambiguity, we don’t not need to use different names.&lt;/p&gt;
+
+&lt;h2 id=&quot;npfloat64-vs-npfloat64t&quot;&gt;np.float64 v.s np.float64_t&lt;/h2&gt;
+
+&lt;p&gt;So here comes our main topic, what is the difference between &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64_t&lt;/code&gt;, and which should I use?&lt;/p&gt;
+
+&lt;h4 id=&quot;npfloat64&quot;&gt;np.float64&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; is a Python &lt;code class=&quot;highlighter-rouge&quot;&gt;type&lt;/code&gt; object that is defined at Python level to represent 64 bits float data, and it has common attributes such as &lt;code class=&quot;highlighter-rouge&quot;&gt;__name__&lt;/code&gt; that most of other Python objects have too. You can simply use the following code to verify it:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float64&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;npfloat64-1&quot;&gt;np.float64&lt;/h4&gt;
+
+&lt;p&gt;In &lt;a href=&quot;https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;__init__.pxd&lt;/code&gt;&lt;/a&gt;, you can find the following lines:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ctypedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;double&lt;/span&gt;       &lt;span class=&quot;n&quot;&gt;npy_float64&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ctypedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;npy_float64&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;float64_t&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;So it is clear that &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64_t&lt;/code&gt; represents the type &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt; in C, and it is nowhere near as a Python object. Therefore, if you call &lt;code class=&quot;highlighter-rouge&quot;&gt;print np.float64_t&lt;/code&gt; in a &lt;em&gt;.pyx&lt;/em&gt; file, it will warn you the following message during compile time:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;&#39;float64_t&#39; is not a constant, variable or function identifier&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;which-to-use&quot;&gt;Which to use?&lt;/h4&gt;
+
+&lt;p&gt;Let’s take another simple example to illustrate the usage time between these two types:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;cimport&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+	
+	&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;cdef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ndarray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float64_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ndim&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;
+	
+	&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;empty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dtype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;We use &lt;code class=&quot;highlighter-rouge&quot;&gt;np.ndarray&lt;/code&gt; to declare the type of the object exposing the buffer interface, and place C data type inside the bracket for the array elements. So, we should make sure we use &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64_t&lt;/code&gt; here to specify the element’s data type .&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;To initialize the Numpy buffer we just declared, we can create an array object at Python level and assign it to the Numpy buffer. In this case, we should use &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; since we are not declaring C type variable.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Of course, The same concept can be generalized to other data types (e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;np.int32&lt;/code&gt; v.s &lt;code class=&quot;highlighter-rouge&quot;&gt;np.int32_t&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;np.int64&lt;/code&gt; v.s &lt;code class=&quot;highlighter-rouge&quot;&gt;np.int_64_t&lt;/code&gt;, etc.)&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;After working on Cython for a month, I found debugging in Cython is both hard and frustrated because the documents is not really thorough.&lt;/p&gt;
+
+&lt;p&gt;Consequently, I hope this blog post can safe your effort by helping you clarify the difference between data types defined in Cython and Python.&lt;/p&gt;
+
+&lt;p&gt;In the future, I will also document more of my findings about Cython during my GSoC.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 09 Jun 2016 07:52:21 +0800</pubDate>
+        <link>http://yclin.me/2016/06/difference-between-float64-and-float64_t</link>
+        <guid isPermaLink="true">http://yclin.me/2016/06/difference-between-float64-and-float64_t</guid>
+        
+        
+        <category>GSoC</category>
+        
+      </item>
     
       <item>
         <title>scikit-learn Sparse Utils Now Support Fused Types</title>

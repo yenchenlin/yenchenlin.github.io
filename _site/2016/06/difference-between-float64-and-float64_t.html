@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="t-white">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Difference between np.float64 & np.float64_t</title>
+  <meta name="description" content="If you are a newcomer to Cython just like me, it is probably that you will be confused by the usage time of np.float64_t and np.float64.">
+
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700|Roboto+Mono:400,500' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://yclin.me/2016/06/difference-between-float64-and-float64_t">
+  <link rel="alternate" type="application/rss+xml" title="Yen" href="http://yclin.me/feed.xml">
+</head>
+
+  <body>
+    <nav class="c-navigation is-fixed">
+  <div class="c-navigation__container u-container">
+    <a class="c-navigation__item " href="/">About</a>
+    <a class="c-navigation__item " href="/blog/">Blog</a>
+    <!-- <a class="c-navigation__item " href="/about/">About</a> -->
+  </div>
+</nav>
+
+
+    <article class="c-article">
+  <header class="c-header c-article__header">
+    <div class="u-container">
+      <h1 class="c-header__title">Difference between np.float64 & np.float64_t</h1>
+    </div>
+  </header>
+
+  <div class="c-article__main">
+    <p>If you are a newcomer to Cython just like me, it is probably that you will be confused by the usage time of <code class="highlighter-rouge">np.float64_t</code> and <code class="highlighter-rouge">np.float64</code>.</p>
+
+<p>Below, I’ll briefly introduce how these two types are fundamentally different, and generalize this concept to other datatypes as well.</p>
+
+<p>Before that, we need to know a bit of Cython.</p>
+
+<h2 id="cimport-in-cython">cimport in Cython</h2>
+
+<p>In Python, we use the <code class="highlighter-rouge">import</code> statement to access functions, objects, and classes inside other <em>modules</em> and <em>packages</em>.</p>
+
+<p>Cython also fully supports the <code class="highlighter-rouge">import</code> statement, so it allows us to access Python objects defined in external Python modules.</p>
+
+<p>However, note that if above were the end of the story, Cython modules would not allow to access other Cython modules’ <code class="highlighter-rouge">cdef</code> functions, <code class="highlighter-rouge">ctypedef</code>s, or structs, and it would not allow C-level access to other extension types.</p>
+
+<p>To remedy this, Cython has a <code class="highlighter-rouge">cimport</code> statement that provides <strong>compile time</strong> access to C-level constructs, and it looks for these constructs’ declarations from separate Cython files called <em>definition files</em>, which have a <em>.pxd</em> extension and need to be created by us.</p>
+
+<p>In a <em>.pxd</em> file, we can place the <em>declarations</em> of C-level constructs that we wish to share, and only the <em>declarations</em> here are cimportable. Also, since <code class="highlighter-rouge">some_file_name.pxd</code> created by us have the same base name as the original file <code class="highlighter-rouge">some_file_name.pyx</code>, they are treated as one namespace by Cython. Therefore, we need to modify <code class="highlighter-rouge">some_file_name.pyx</code> in order to remove the repeat declarations in it.</p>
+
+<p>And after we have created the <em>.pxd</em> file and clear the <em>.pyx</em> file, now an external implementation file can access all C-level constructs inside <em>.pyx</em> via the <code class="highlighter-rouge">cimport</code> statement.</p>
+
+<p>Let’s take an real-world example to see how <code class="highlighter-rouge">cimport</code> works!</p>
+
+<h2 id="cimport-numpy-as-np">cimport numpy as np</h2>
+
+<p>In some files of the well-known machine library scikit-learn (such as <a href="https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/utils/sparsefuncs_fast.pyx">this one</a>), you can find the following code snippet:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">cimport</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+</code></pre>
+</div>
+
+<p>I remember I was stunned when I saw these lines for the first time, WHAT IS IT?</p>
+
+<p>Well, the good news is that we now know the basics of the <code class="highlighter-rouge">cimport</code> statement, so we can figure it out step by step.</p>
+
+<p>First, since only the declarations in <em>.pxd</em> file are cimportable, we have to identify which <em>.pxd</em> file is Cython looking when executing <code class="highlighter-rouge">cimport numpy as np</code>.</p>
+
+<p>After a bit of research, we should find that a file called <a href="https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd"><code class="highlighter-rouge">__init__.pxd</code></a> lies in the <a href="https://github.com/cython/cython/tree/master/Cython/Includes/numpy"><strong>numpy</strong> folder</a> under our Cython installation. An <code class="highlighter-rouge">__init__.pxd</code> file can make Cython treat the directory as a package just like how <code class="highlighter-rouge">__init.py__</code> works for Python (see <a href="http://stackoverflow.com/questions/448271/what-is-init-py-for">here</a>). Therefore, in this case Cython will treat the <strong>numpy</strong> folder as a package and give us access to Numpy’s C API defined in the <a href="https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd"><code class="highlighter-rouge">__init__.pxd</code></a> file during <strong>compile time</strong>.</p>
+
+<p>On the contrary, <code class="highlighter-rouge">import numpy as np</code> will only give us access to Numpy’s pure-Python API and it occurs at <strong>runtime</strong>.</p>
+
+<p>Note that here we use the same alias (i.e., <code class="highlighter-rouge">np</code>) for both of the imported external packages, but thanks to the almighty Cython which will internally handles this ambiguity, we don’t not need to use different names.</p>
+
+<h2 id="npfloat64-vs-npfloat64t">np.float64 v.s np.float64_t</h2>
+
+<p>So here comes our main topic, what is the difference between <code class="highlighter-rouge">np.float64</code> and <code class="highlighter-rouge">np.float64_t</code>, and which should I use?</p>
+
+<h4 id="npfloat64">np.float64</h4>
+
+<p><code class="highlighter-rouge">np.float64</code> is a Python <code class="highlighter-rouge">type</code> object that is defined at Python level to represent 64 bits float data, and it has common attributes such as <code class="highlighter-rouge">__name__</code> that most of other Python objects have too. You can simply use the following code to verify it:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="nb">type</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="o">.</span><span class="n">__name__</span>
+</code></pre>
+</div>
+
+<h4 id="npfloat64-1">np.float64</h4>
+
+<p>In <a href="https://github.com/cython/cython/blob/970c2fc0e676ca22016e14147ada0edba937dc6b/Cython/Includes/numpy/__init__.pxd"><code class="highlighter-rouge">__init__.pxd</code></a>, you can find the following lines:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">ctypedef</span> <span class="n">double</span>       <span class="n">npy_float64</span>
+<span class="n">ctypedef</span> <span class="n">npy_float64</span>    <span class="n">float64_t</span>
+</code></pre>
+</div>
+
+<p>So it is clear that <code class="highlighter-rouge">np.float64_t</code> represents the type <code class="highlighter-rouge">double</code> in C, and it is nowhere near as a Python object. Therefore, if you call <code class="highlighter-rouge">print np.float64_t</code> in a <em>.pyx</em> file, it will warn you the following message during compile time:
+<code class="highlighter-rouge">'float64_t' is not a constant, variable or function identifier</code></p>
+
+<h4 id="which-to-use">Which to use?</h4>
+
+<p>Let’s take another simple example to illustrate the usage time between these two types:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">cimport</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+	
+	<span class="o">//</span> <span class="mi">1</span>
+	<span class="n">cdef</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64_t</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">]</span> <span class="n">array</span>
+	
+	<span class="o">//</span> <span class="mi">2</span>
+	<span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+	
+	<span class="k">print</span> <span class="n">array</span>
+</code></pre>
+</div>
+
+<ol>
+  <li>
+    <p>We use <code class="highlighter-rouge">np.ndarray</code> to declare the type of the object exposing the buffer interface, and place C data type inside the bracket for the array elements. So, we should make sure we use <code class="highlighter-rouge">np.float64_t</code> here to specify the element’s data type .</p>
+  </li>
+  <li>
+    <p>To initialize the Numpy buffer we just declared, we can create an array object at Python level and assign it to the Numpy buffer. In this case, we should use <code class="highlighter-rouge">np.float64</code> since we are not declaring C type variable.</p>
+  </li>
+</ol>
+
+<p>Of course, The same concept can be generalized to other data types (e.g., <code class="highlighter-rouge">np.int32</code> v.s <code class="highlighter-rouge">np.int32_t</code>, <code class="highlighter-rouge">np.int64</code> v.s <code class="highlighter-rouge">np.int_64_t</code>, etc.)</p>
+
+<h2 id="summary">Summary</h2>
+
+<p>After working on Cython for a month, I found debugging in Cython is both hard and frustrated because the documents is not really thorough.</p>
+
+<p>Consequently, I hope this blog post can safe your effort by helping you clarify the difference between data types defined in Cython and Python.</p>
+
+<p>In the future, I will also document more of my findings about Cython during my GSoC.</p>
+
+
+<div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//yclin-blog.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+  </div>
+</article>
+
+
+    <footer class="c-footer">
+  <div class="u-container c-footer__container">
+    <p>&copy; Yen 2016</p>
+    <p>
+      <a href="https://twitter.com/yenchenlin1994">Twitter</a>
+      <a href="https://github.com/yenchenlin1994">Github</a>
+      
+      
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>
