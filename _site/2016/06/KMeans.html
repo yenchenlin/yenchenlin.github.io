@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="t-white">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>scikit-learn KMeans Now Support Fused Types</title>
+  <meta name="description" content="Clustering is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar to each other than to th...">
+
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700|Roboto+Mono:400,500' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://yclin.me/2016/06/KMeans">
+  <link rel="alternate" type="application/rss+xml" title="Yen" href="http://yclin.me/feed.xml">
+</head>
+
+  <body>
+    <nav class="c-navigation is-fixed">
+  <div class="c-navigation__container u-container">
+    <a class="c-navigation__item " href="/">About</a>
+    <a class="c-navigation__item " href="/blog/">Blog</a>
+    <!-- <a class="c-navigation__item " href="/about/">About</a> -->
+  </div>
+</nav>
+
+
+    <article class="c-article">
+  <header class="c-header c-article__header">
+    <div class="u-container">
+      <h1 class="c-header__title">scikit-learn KMeans Now Support Fused Types</h1>
+    </div>
+  </header>
+
+  <div class="c-article__main">
+    <p><a href="https://en.wikipedia.org/wiki/Cluster_analysis">Clustering</a> is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar to each other than to those in other groups (clusters). This common technique is used in many fields, including image analysis and unsupervised document classification. In scikit-learn, clustering of unlabeled data can be performed with the module <a href="http://scikit-learn.org/stable/modules/classes.html#module-sklearn.cluster">sklearn.cluster</a>. However, in the current implementation of scikit-learn, one of the most popular clustering algorithm, KMeans, only support <code class="highlighter-rouge">float64</code> input data and will therefore implicitly convert other input data types, e.g., <code class="highlighter-rouge">float32</code>, into <code class="highlighter-rouge">float64</code>, which may cause seriously memory waste.</p>
+
+<p>Below, I’ll briefly introduce KMeans algorithms and go through the work I’ve done to make it become memory-efficient during GSoC.</p>
+
+<h2 id="kmeans">KMeans</h2>
+
+<p>KMeans is probably one of the most well-knowned clustering algorithm since it is both effective and easy to be implemented.</p>
+
+<p>To understand KMeans algorithm, I think it is good to start from these figures which clearly illustrate how KMeans works.</p>
+
+<p><img src="http://stanford.edu/~cpiech/cs221/img/kmeansViz.png" alt="" /></p>
+
+<p>Training examples are shown as dots, and cluster centroids are shown as crosses.</p>
+
+<ul>
+  <li>(a) Original dataset.</li>
+  <li>(b) Random initial cluster centroids.</li>
+  <li>
+    <p>(c-f) Illustration of running two iterations of k-means. In each iteration, we</p>
+
+    <ol>
+      <li>Assign each training example to the closest cluster centroid (shown by “painting” the training examples the same color as the cluster centroid to which is assigned)</li>
+      <li>Move each cluster centroid to the mean of the points assigned to it.</li>
+    </ol>
+  </li>
+</ul>
+
+<p>For more details, <a href="http://cs229.stanford.edu/notes/cs229-notes7a.pdf">Andrew Ng’s course note</a> is a good reference.</p>
+
+<p>In scikit-learn, <a href="http://scikit-learn.org/stable/modules/clustering.html#k-means">KMeans</a> implements the algorithm described above, and <a href="http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means">MiniBatchKMeans</a> is a variant of the KMeans algorithm which uses mini-batches to reduce the computation time, while still attempting to optimise the same objective function.</p>
+
+<h2 id="memory-wasting-issues">Memory Wasting Issues</h2>
+
+<p>However, original implementation of these two algorithms in scikit-learn are not memory-efficient, they will convert input data into <code class="highlighter-rouge">np.float64</code> since Cython implementation only supports <code class="highlighter-rouge">double</code> input data.</p>
+
+<p>Here’s a simple test script which can help us identify the memory wasting issues:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span> <span class="k">as</span> <span class="n">sp</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">KMeans</span>
+
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">fit_est</span><span class="p">():</span>
+    <span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">200000</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="c"># Toggle the following comment to test `np.float32` data</span>
+<span class="c"># X = np.float32(X)</span>
+
+<span class="c"># Toggle the following comment to test sprase data</span>
+<span class="c"># X = sp.csr_matrix(X)</span>
+
+<span class="n">estimator</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">()</span>
+<span class="n">fit_est</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>You can run</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>mprof run &lt;script&gt;
+mprof plot
+</code></pre>
+</div>
+
+<p>to see the memory profiling results.</p>
+
+<p>To save your effort, below is the result of memory profiling on my own computer:</p>
+
+<ul>
+  <li>Dense <code class="highlighter-rouge">np.float32</code> data &amp; Dense <code class="highlighter-rouge">np.float64</code> data 
+  <img src="https://cloud.githubusercontent.com/assets/7057863/15679091/35748228-2783-11e6-98ae-596b460c2d1a.png" alt="" /></li>
+</ul>
+
+<p>No surprise, these two kinds of input data have the <strong>same</strong> memory usage, which means that there is a huge waste when we pass <code class="highlighter-rouge">np.float32</code> data into original KMeans of scikit-learn because it requires same memory space as <code class="highlighter-rouge">np.float64</code> data.</p>
+
+<p>To solve this problem, we can introduce Cython <a href="(http://docs.cython.org/src/userguide/fusedtypes.html)">fused types</a> to avoid data copying.</p>
+
+<h2 id="enhanced-results">Enhanced Results</h2>
+
+<p>After PR <a href="https://github.com/scikit-learn/scikit-learn/pull/6846">#6846</a>, now both <a href="http://scikit-learn.org/stable/modules/clustering.html#k-means">KMeans</a> and <a href="http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means">MiniBatchKMeans</a> support fused types and can therefore use <code class="highlighter-rouge">np.float32</code> data as input directly.</p>
+
+<p>Below are the memory profiling results comparison:</p>
+
+<ul>
+  <li>Dense <code class="highlighter-rouge">np.float32</code> data
+    <ul>
+      <li>Before enhancement:
+  <img src="https://cloud.githubusercontent.com/assets/7057863/15679091/35748228-2783-11e6-98ae-596b460c2d1a.png" alt="" /></li>
+    </ul>
+  </li>
+  <li>Dense <code class="highlighter-rouge">np.float32</code> data
+    <ul>
+      <li>After enhancement:
+  <img src="https://cloud.githubusercontent.com/assets/7057863/15679092/374d2794-2783-11e6-8b95-7aac1347581c.png" alt="" /></li>
+    </ul>
+  </li>
+  <li>Sparse <code class="highlighter-rouge">np.float32</code> data
+    <ul>
+      <li>Before enhancement:
+  <img src="https://cloud.githubusercontent.com/assets/7057863/16178924/79050080-3688-11e6-9381-1ced28bb5fc0.png" alt="" /></li>
+    </ul>
+  </li>
+  <li>Sparse <code class="highlighter-rouge">np.float32</code> data
+    <ul>
+      <li>After enhancement:
+  <img src="https://cloud.githubusercontent.com/assets/7057863/16178743/806a0942-3683-11e6-8764-567762eb0577.png" alt="" /></li>
+    </ul>
+  </li>
+</ul>
+
+<p>As one can see, introducing Cython fused types drastically reduces the memory usage of KMeans in scikit-learn, which can help us avoid unexpected memory waste.</p>
+
+<p>Note that in the sparse case, I directly transform the dense array used before into sparse array, which will result in higher memory usage since sparse format uses more space per nonzero value.</p>
+
+<h2 id="summary">Summary</h2>
+
+<p>Both <a href="http://scikit-learn.org/stable/modules/clustering.html#k-means">KMeans</a> and <a href="http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means">MiniBatchKMeans</a> now support <code class="highlighter-rouge">np.float32</code> input data in a memory-efficient way, go grab your huge dataset and feed them into KMeans of scikit-learn now!</p>
+
+
+<div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//yclin-blog.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+  </div>
+</article>
+
+
+    <footer class="c-footer">
+  <div class="u-container c-footer__container">
+    <p>&copy; Yen 2016</p>
+    <p>
+      <a href="https://twitter.com/yenchenlin1994">Twitter</a>
+      <a href="https://github.com/yenchenlin1994">Github</a>
+      
+      
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

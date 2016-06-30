@@ -6,9 +6,140 @@
 </description>
     <link>http://yclin.me/</link>
     <atom:link href="http://yclin.me/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 14 Jun 2016 18:39:36 +0800</pubDate>
-    <lastBuildDate>Tue, 14 Jun 2016 18:39:36 +0800</lastBuildDate>
+    <pubDate>Thu, 30 Jun 2016 18:03:50 +0800</pubDate>
+    <lastBuildDate>Thu, 30 Jun 2016 18:03:50 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>scikit-learn KMeans Now Support Fused Types</title>
+        <description>&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Cluster_analysis&quot;&gt;Clustering&lt;/a&gt; is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar to each other than to those in other groups (clusters). This common technique is used in many fields, including image analysis and unsupervised document classification. In scikit-learn, clustering of unlabeled data can be performed with the module &lt;a href=&quot;http://scikit-learn.org/stable/modules/classes.html#module-sklearn.cluster&quot;&gt;sklearn.cluster&lt;/a&gt;. However, in the current implementation of scikit-learn, one of the most popular clustering algorithm, KMeans, only support &lt;code class=&quot;highlighter-rouge&quot;&gt;float64&lt;/code&gt; input data and will therefore implicitly convert other input data types, e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;float32&lt;/code&gt;, into &lt;code class=&quot;highlighter-rouge&quot;&gt;float64&lt;/code&gt;, which may cause seriously memory waste.&lt;/p&gt;
+
+&lt;p&gt;Below, I’ll briefly introduce KMeans algorithms and go through the work I’ve done to make it become memory-efficient during GSoC.&lt;/p&gt;
+
+&lt;h2 id=&quot;kmeans&quot;&gt;KMeans&lt;/h2&gt;
+
+&lt;p&gt;KMeans is probably one of the most well-knowned clustering algorithm since it is both effective and easy to be implemented.&lt;/p&gt;
+
+&lt;p&gt;To understand KMeans algorithm, I think it is good to start from these figures which clearly illustrate how KMeans works.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://stanford.edu/~cpiech/cs221/img/kmeansViz.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Training examples are shown as dots, and cluster centroids are shown as crosses.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;(a) Original dataset.&lt;/li&gt;
+  &lt;li&gt;(b) Random initial cluster centroids.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;(c-f) Illustration of running two iterations of k-means. In each iteration, we&lt;/p&gt;
+
+    &lt;ol&gt;
+      &lt;li&gt;Assign each training example to the closest cluster centroid (shown by “painting” the training examples the same color as the cluster centroid to which is assigned)&lt;/li&gt;
+      &lt;li&gt;Move each cluster centroid to the mean of the points assigned to it.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For more details, &lt;a href=&quot;http://cs229.stanford.edu/notes/cs229-notes7a.pdf&quot;&gt;Andrew Ng’s course note&lt;/a&gt; is a good reference.&lt;/p&gt;
+
+&lt;p&gt;In scikit-learn, &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#k-means&quot;&gt;KMeans&lt;/a&gt; implements the algorithm described above, and &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means&quot;&gt;MiniBatchKMeans&lt;/a&gt; is a variant of the KMeans algorithm which uses mini-batches to reduce the computation time, while still attempting to optimise the same objective function.&lt;/p&gt;
+
+&lt;h2 id=&quot;memory-wasting-issues&quot;&gt;Memory Wasting Issues&lt;/h2&gt;
+
+&lt;p&gt;However, original implementation of these two algorithms in scikit-learn are not memory-efficient, they will convert input data into &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; since Cython implementation only supports &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt; input data.&lt;/p&gt;
+
+&lt;p&gt;Here’s a simple test script which can help us identify the memory wasting issues:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scipy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparse&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sp&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.cluster&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KMeans&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@profile&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fit_est&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;estimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Toggle the following comment to test `np.float32` data&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# X = np.float32(X)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Toggle the following comment to test sprase data&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# X = sp.csr_matrix(X)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;estimator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KMeans&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;fit_est&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;You can run&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mprof run &amp;lt;script&amp;gt;
+mprof plot
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;to see the memory profiling results.&lt;/p&gt;
+
+&lt;p&gt;To save your effort, below is the result of memory profiling on my own computer:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Dense &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data &amp;amp; Dense &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; data 
+  &lt;img src=&quot;https://cloud.githubusercontent.com/assets/7057863/15679091/35748228-2783-11e6-98ae-596b460c2d1a.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No surprise, these two kinds of input data have the &lt;strong&gt;same&lt;/strong&gt; memory usage, which means that there is a huge waste when we pass &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data into original KMeans of scikit-learn because it requires same memory space as &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float64&lt;/code&gt; data.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, we can introduce Cython &lt;a href=&quot;(http://docs.cython.org/src/userguide/fusedtypes.html)&quot;&gt;fused types&lt;/a&gt; to avoid data copying.&lt;/p&gt;
+
+&lt;h2 id=&quot;enhanced-results&quot;&gt;Enhanced Results&lt;/h2&gt;
+
+&lt;p&gt;After PR &lt;a href=&quot;https://github.com/scikit-learn/scikit-learn/pull/6846&quot;&gt;#6846&lt;/a&gt;, now both &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#k-means&quot;&gt;KMeans&lt;/a&gt; and &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means&quot;&gt;MiniBatchKMeans&lt;/a&gt; support fused types and can therefore use &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data as input directly.&lt;/p&gt;
+
+&lt;p&gt;Below are the memory profiling results comparison:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Dense &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data
+    &lt;ul&gt;
+      &lt;li&gt;Before enhancement:
+  &lt;img src=&quot;https://cloud.githubusercontent.com/assets/7057863/15679091/35748228-2783-11e6-98ae-596b460c2d1a.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Dense &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data
+    &lt;ul&gt;
+      &lt;li&gt;After enhancement:
+  &lt;img src=&quot;https://cloud.githubusercontent.com/assets/7057863/15679092/374d2794-2783-11e6-8b95-7aac1347581c.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Sparse &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data
+    &lt;ul&gt;
+      &lt;li&gt;Before enhancement:
+  &lt;img src=&quot;https://cloud.githubusercontent.com/assets/7057863/16178924/79050080-3688-11e6-9381-1ced28bb5fc0.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Sparse &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; data
+    &lt;ul&gt;
+      &lt;li&gt;After enhancement:
+  &lt;img src=&quot;https://cloud.githubusercontent.com/assets/7057863/16178743/806a0942-3683-11e6-8764-567762eb0577.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As one can see, introducing Cython fused types drastically reduces the memory usage of KMeans in scikit-learn, which can help us avoid unexpected memory waste.&lt;/p&gt;
+
+&lt;p&gt;Note that in the sparse case, I directly transform the dense array used before into sparse array, which will result in higher memory usage since sparse format uses more space per nonzero value.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;Both &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#k-means&quot;&gt;KMeans&lt;/a&gt; and &lt;a href=&quot;http://scikit-learn.org/stable/modules/clustering.html#mini-batch-k-means&quot;&gt;MiniBatchKMeans&lt;/a&gt; now support &lt;code class=&quot;highlighter-rouge&quot;&gt;np.float32&lt;/code&gt; input data in a memory-efficient way, go grab your huge dataset and feed them into KMeans of scikit-learn now!&lt;/p&gt;
+</description>
+        <pubDate>Tue, 28 Jun 2016 07:52:21 +0800</pubDate>
+        <link>http://yclin.me/2016/06/KMeans</link>
+        <guid isPermaLink="true">http://yclin.me/2016/06/KMeans</guid>
+        
+        
+        <category>GSoC</category>
+        
+      </item>
     
       <item>
         <title>Difference between np.float64 &amp; np.float64_t</title>
