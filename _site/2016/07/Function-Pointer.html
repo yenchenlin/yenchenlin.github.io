@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html class="t-white">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Using Function Pointer to Maximize Code Reusability in Cython</title>
+  <meta name="description" content="When writing C, function pointer is extremely useful because it can help us define a callback function, i.e., a way to parametrize a function. This means tha...">
+
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700|Roboto+Mono:400,500' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://yclin.me/2016/07/Function-Pointer">
+  <link rel="alternate" type="application/rss+xml" title="Yen" href="http://yclin.me/feed.xml">
+</head>
+
+  <body>
+    <nav class="c-navigation is-fixed">
+  <div class="c-navigation__container u-container">
+    <a class="c-navigation__item " href="/">About</a>
+    <a class="c-navigation__item " href="/blog/">Blog</a>
+    <!-- <a class="c-navigation__item " href="/about/">About</a> -->
+  </div>
+</nav>
+
+
+    <article class="c-article">
+  <header class="c-header c-article__header">
+    <div class="u-container">
+      <h1 class="c-header__title">Using Function Pointer to Maximize Code Reusability in Cython</h1>
+    </div>
+  </header>
+
+  <div class="c-article__main">
+    <p>When writing C, function pointer is extremely useful because it can help us define a <strong>callback</strong> function, i.e., <strong>a way to parametrize a function</strong>. This means that some part of the function behavior is not hard-coded into itself, but into the callback function provided by user. Callers can make function behave differently by passing different callback functions. A classic example is <code class="highlighter-rouge">qsort()</code> from the C standard library that takes its sorting criterion as a pointer to a comparison function.</p>
+
+<p>Besides the benefit above, we can also use function pointer straightforwardly to avoid redundant control flow code such as <code class="highlighter-rouge">if</code>, <code class="highlighter-rouge">else</code>.</p>
+
+<p>In this blog post, I’m going to explain how we can combine function pointer and Cython fused types in a easy way to make function pointer become more powerful than ever, and therefore maximize the code reusability in Cython.</p>
+
+<h2 id="function-pointer">Function Pointer</h2>
+
+<p>Let’s start from why function pointer can help us address code duplication issue.</p>
+
+<p>Consider we have the following two functions, one add one and the other add two to the function argument:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kt">float</span> <span class="nf">add_one</span><span class="p">(</span><span class="kt">float</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">float</span> <span class="nf">add_two</span><span class="p">(</span><span class="kt">float</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+<p>Now close your eyes, try your best to imagine the operation <code class="highlighter-rouge">x+1</code> performed in <code class="highlighter-rouge">add_one</code> and the operation <code class="highlighter-rouge">x+2</code> performed in <code class="highlighter-rouge">add_two</code> are costly which must be implemented in C or they will take several hours to complete.</p>
+
+<p>Okay, base on the <del>imagined</del> reason above, we indeed need to import C funcitons above to speed up our Cython function, which will return <code class="highlighter-rouge">(x+1)*2+1</code> if <code class="highlighter-rouge">x</code> is an odd number, or <code class="highlighter-rouge">(x+2)*2+2</code> if <code class="highlighter-rouge">x</code> is an even number:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">cdef</span> <span class="nb">float</span> <span class="n">linear_transform</span><span class="p">(</span><span class="nb">float</span> <span class="n">x</span><span class="p">):</span>
+	<span class="s">"""
+	This function will return (x+1)*2+1 if x is odd
+	                          (x+2)*2+2 if x is even
+	"""</span>
+	
+	<span class="nb">float</span> <span class="n">ans</span>
+
+	<span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c"># x is odd</span>
+		<span class="n">ans</span> <span class="o">=</span> <span class="n">add_one</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>          <span class="c"># x is even</span>
+		<span class="n">ans</span> <span class="o">=</span> <span class="n">add_two</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	
+	<span class="n">ans</span> <span class="o">*=</span> <span class="mi">2</span>
+	
+	<span class="o">//</span> <span class="n">Code</span> <span class="n">duplication</span>
+	<span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">ans</span> <span class="o">=</span> <span class="n">add_one</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">ans</span> <span class="o">=</span> <span class="n">add_two</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">ans</span>
+</code></pre>
+</div>
+
+<p>As one can see, there is a code duplication appears in the end of this function, because we have to check whether we need to apply <code class="highlighter-rouge">add_one</code> or <code class="highlighter-rouge">add_two</code> to the variable <code class="highlighter-rouge">x</code>.</p>
+
+<p>To address this issue, we can definine a function pointer and assign it once we know <code class="highlighter-rouge">x</code> is a odd number or even number. Until the end of the program, we don’t have to write annoying <code class="highlighter-rouge">if</code>, <code class="highlighter-rouge">else</code> again.</p>
+
+<p>Above code snippet can reduce to:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">ctypedef</span> <span class="nb">float</span> <span class="p">(</span><span class="o">*</span><span class="n">ADD</span><span class="p">)(</span><span class="nb">float</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="n">cdef</span> <span class="nb">float</span> <span class="n">linear_transform</span><span class="p">(</span><span class="nb">float</span> <span class="n">x</span><span class="p">):</span>
+	<span class="s">"""
+	This function will return (x+1)*2+1 if x is odd
+	                          (x+2)*2+2 if x is even
+	"""</span>
+	<span class="n">ADD</span> <span class="n">add</span>
+	<span class="nb">float</span> <span class="n">ans</span>
+
+	<span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c"># x is odd</span>
+		<span class="n">add</span> <span class="o">=</span> <span class="n">add_one</span>
+	<span class="k">else</span><span class="p">:</span>          <span class="c"># x is even</span>
+		<span class="n">add</span> <span class="o">=</span> <span class="n">add_two</span>
+	
+	<span class="n">ans</span> <span class="o">*=</span> <span class="mi">2</span>
+	<span class="n">ans</span> <span class="o">=</span> <span class="n">add</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">ans</span>
+</code></pre>
+</div>
+
+<p>This code snippet is more readable. Function pointer do make our code looks neat!</p>
+
+<p><strong>Note</strong>: Although there is only one duplication in above example, there may be a lot in real code, which can show function pointer’s value more obviously.</p>
+
+<h2 id="function-pointers-limitation">Function Pointer’s Limitation</h2>
+
+<p>However, function pointer is not omnipotent. Although they provide a good way to write generic code, unfortunately they don’t provide you with <strong>type generality</strong>. What do I mean?</p>
+
+<p>Consider if we now have the following two C functions that both add 1 to the argument variable, one is for type <code class="highlighter-rouge">float</code> and one is for type <code class="highlighter-rouge">double</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kt">float</span> <span class="nf">add_one_float</span><span class="p">(</span><span class="kt">float</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">double</span> <span class="nf">add_one_double</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>Now do the imagination process described in our first example again, base on the same reason, we indeed need to load these extern C functions to speed up the following Cython function <code class="highlighter-rouge">linear_transform </code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">cdef</span> <span class="n">floating</span> <span class="n">linear_transform</span><span class="p">(</span><span class="n">floating</span> <span class="n">x</span><span class="p">):</span>
+	<span class="s">"""
+	This function will return (x+1)*2+1 with the 
+	same type as input argument
+	"""</span>
+	
+	<span class="n">floating</span> <span class="n">ans</span>
+
+	<span class="k">if</span> <span class="n">floating</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
+		<span class="n">ans</span>  <span class="o">=</span> <span class="n">add_one_float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">floating</span> <span class="ow">is</span> <span class="n">double</span><span class="p">:</span>
+		<span class="n">ans</span>  <span class="o">=</span> <span class="n">add_one_double</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	
+	<span class="n">ans</span> <span class="o">*=</span> <span class="mi">2</span>
+	
+	<span class="k">if</span> <span class="n">floating</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
+		<span class="n">ans</span>  <span class="o">=</span> <span class="n">add_one_float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">floating</span> <span class="ow">is</span> <span class="n">double</span><span class="p">:</span>
+		<span class="n">ans</span>  <span class="o">=</span> <span class="n">add_one_double</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">ans</span>
+</code></pre>
+</div>
+
+<p>Don’t be scared if you havn’t seem <code class="highlighter-rouge">floating</code> before, to be brief, <code class="highlighter-rouge">floating</code> here refers to either type <code class="highlighter-rouge">float</code> <strong>or</strong> type <code class="highlighter-rouge">double</code>.
+It is just a feature called <a href="http://docs.cython.org/src/userguide/fusedtypes.html">fused types</a> in Cython, which basically serves the same role like templates in C++ or generics in Java.</p>
+
+<p>Note that now we can’t define a function pointer and assign it like what we did in our first example, because C functions <code class="highlighter-rouge">add_one_float</code> and <code class="highlighter-rouge">add_one_double</code> have different function signatures. Since C is a strong typed language, it’s hard to define a function pointer that can point to functions with different types. (which is why, for example, the standard library <code class="highlighter-rouge">qsort</code> still requires a function that takes <code class="highlighter-rouge">void*</code> pointer.)</p>
+
+<p><strong>NOTE</strong>: Usage of <code class="highlighter-rouge">void*</code> pointer in C is beyond the scope of this blog post, you can find a simple introduction <a href="http://www.circuitstoday.com/void-pointers-in-c">here</a>. But remember, it’s dangerous.</p>
+
+<h2 id="finction-pointer--fused-types">Finction Pointer + Fused Types</h2>
+
+<p>Fortunately, <a href="http://docs.cython.org/src/userguide/fusedtypes.html">fused types</a> is here to rescue us. With this useful tool, we can actually define fused types function pointer to solve above problem!</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">ctypedef</span> <span class="n">floating</span> <span class="p">(</span><span class="o">*</span><span class="n">ADD</span><span class="p">)(</span><span class="n">floating</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="n">cdef</span> <span class="n">floating</span> <span class="n">linear_transform</span><span class="p">(</span><span class="n">floating</span> <span class="n">x</span><span class="p">):</span>
+	<span class="s">"""
+	This function will return (x+1)*2+1 with the 
+	same type as input argument
+	"""</span>
+	
+	<span class="n">ADD</span> <span class="n">add_one</span>
+	<span class="n">floating</span> <span class="n">ans</span>
+
+	<span class="k">if</span> <span class="n">floating</span> <span class="ow">is</span> <span class="nb">float</span><span class="p">:</span>
+		<span class="n">add_one</span> <span class="o">=</span> <span class="n">add_one_float</span>
+	<span class="k">elif</span> <span class="n">floating</span> <span class="ow">is</span> <span class="n">double</span><span class="p">:</span>
+		<span class="n">add_one</span> <span class="o">=</span> <span class="n">add_one_double</span>
+		
+	<span class="n">ans</span> <span class="o">=</span> <span class="n">add_one</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c"># (x+1)</span>
+
+	<span class="n">ans</span> <span class="o">*=</span> <span class="mi">2</span>         <span class="c"># (x+1)*2</span>
+	
+	<span class="n">ans</span> <span class="o">=</span> <span class="n">add_one</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c"># (x+1)*2+1</span>
+	
+	<span class="k">return</span> <span class="n">ans</span>
+</code></pre>
+</div>
+
+<p>Note that since <code class="highlighter-rouge">floating</code> can represent either <code class="highlighter-rouge">float</code> or <code class="highlighter-rouge">double</code>, function pointer of type <code class="highlighter-rouge">floating</code> have the ability to achieve <strong>type generality</strong>, which is not available before we combine fused types with function pointer.</p>
+
+<p>Finally, we are going to demystify the secret of this magic trick performed by Cython and make sure that it works properly.</p>
+
+<h2 id="demystifying-how-it-work">Demystifying How It Work</h2>
+
+<p>In order to know how Cython fused types function pointer works, let’s become a ninja and dive deep to peep the C code generated by Cython.</p>
+
+<p>In the generated C code of above Cython function, there is no <code class="highlighter-rouge">if floating is float:</code> anymore. Actually, to accommodate fused types <code class="highlighter-rouge">floating</code>, Cython generates one version of the function for <code class="highlighter-rouge">float</code> and another for <code class="highlighter-rouge">double</code>.</p>
+
+<p>And in the <code class="highlighter-rouge">float</code> version function, it directly assign the function pointer we declared to the actual C function that will be called if <code class="highlighter-rouge">x</code> is of type <code class="highlighter-rouge">float</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>	<span class="n">__pyx_v_add_one</span> <span class="o">=</span> <span class="n">add_one_float</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>Same as the <code class="highlighter-rouge">float</code> version, <code class="highlighter-rouge">double</code> version also generates</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>	<span class="n">__pyx_v_add_one</span> <span class="o">=</span> <span class="n">add_one_double</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>which directly assigns function pointer to the correct function.</p>
+
+<p>In fact, this direct assignment is an optimization performed by C compiler since it can identify variables that remain unchanged within a function. It would find out that function pointer <code class="highlighter-rouge">__pyx_v_add_one</code> is only set once to a constant, i.e., an extern function. Hence after object code is linked, <code class="highlighter-rouge">__pyx_v_add_one </code> will directly be assigned to the C function.</p>
+
+<p>On the contrary, Python interpreter can provides only little in static analysis and code optimization since the language design doesn’t have the <em>compile</em> phase.</p>
+
+<p>In sum, always implement your computation heavy code in Cython instead of Python.</p>
+
+<h2 id="summary">Summary</h2>
+
+<p>Combining function pointer with fused types raises its power to another higher level. Actually, it is a generalized version of original function pointers, and can be used in lots of places to make our code looks more readable and cleaner.
+Also, it is often a good idea to check the C code generated by Cython so as to make sure it’s doing what you hoped.</p>
+
+<p>See you next time!</p>
+
+
+<div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//yclin-blog.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+  </div>
+</article>
+
+
+    <footer class="c-footer">
+  <div class="u-container c-footer__container">
+    <p>&copy; Yen 2016</p>
+    <p>
+      <a href="https://twitter.com/yenchenlin1994">Twitter</a>
+      <a href="https://github.com/yenchenlin1994">Github</a>
+      
+      
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>

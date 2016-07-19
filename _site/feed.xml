@@ -6,9 +6,218 @@
 </description>
     <link>http://yclin.me/</link>
     <atom:link href="http://yclin.me/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 30 Jun 2016 18:03:50 +0800</pubDate>
-    <lastBuildDate>Thu, 30 Jun 2016 18:03:50 +0800</lastBuildDate>
+    <pubDate>Tue, 19 Jul 2016 16:43:48 +0800</pubDate>
+    <lastBuildDate>Tue, 19 Jul 2016 16:43:48 +0800</lastBuildDate>
     <generator>Jekyll v3.1.2</generator>
+    
+      <item>
+        <title>Using Function Pointer to Maximize Code Reusability in Cython</title>
+        <description>&lt;p&gt;When writing C, function pointer is extremely useful because it can help us define a &lt;strong&gt;callback&lt;/strong&gt; function, i.e., &lt;strong&gt;a way to parametrize a function&lt;/strong&gt;. This means that some part of the function behavior is not hard-coded into itself, but into the callback function provided by user. Callers can make function behave differently by passing different callback functions. A classic example is &lt;code class=&quot;highlighter-rouge&quot;&gt;qsort()&lt;/code&gt; from the C standard library that takes its sorting criterion as a pointer to a comparison function.&lt;/p&gt;
+
+&lt;p&gt;Besides the benefit above, we can also use function pointer straightforwardly to avoid redundant control flow code such as &lt;code class=&quot;highlighter-rouge&quot;&gt;if&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;else&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this blog post, I’m going to explain how we can combine function pointer and Cython fused types in a easy way to make function pointer become more powerful than ever, and therefore maximize the code reusability in Cython.&lt;/p&gt;
+
+&lt;h2 id=&quot;function-pointer&quot;&gt;Function Pointer&lt;/h2&gt;
+
+&lt;p&gt;Let’s start from why function pointer can help us address code duplication issue.&lt;/p&gt;
+
+&lt;p&gt;Consider we have the following two functions, one add one and the other add two to the function argument:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_two&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;Now close your eyes, try your best to imagine the operation &lt;code class=&quot;highlighter-rouge&quot;&gt;x+1&lt;/code&gt; performed in &lt;code class=&quot;highlighter-rouge&quot;&gt;add_one&lt;/code&gt; and the operation &lt;code class=&quot;highlighter-rouge&quot;&gt;x+2&lt;/code&gt; performed in &lt;code class=&quot;highlighter-rouge&quot;&gt;add_two&lt;/code&gt; are costly which must be implemented in C or they will take several hours to complete.&lt;/p&gt;
+
+&lt;p&gt;Okay, base on the &lt;del&gt;imagined&lt;/del&gt; reason above, we indeed need to import C funcitons above to speed up our Cython function, which will return &lt;code class=&quot;highlighter-rouge&quot;&gt;(x+1)*2+1&lt;/code&gt; if &lt;code class=&quot;highlighter-rouge&quot;&gt;x&lt;/code&gt; is an odd number, or &lt;code class=&quot;highlighter-rouge&quot;&gt;(x+2)*2+2&lt;/code&gt; if &lt;code class=&quot;highlighter-rouge&quot;&gt;x&lt;/code&gt; is an even number:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;cdef&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear_transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+	This function will return (x+1)*2+1 if x is odd
+	                          (x+2)*2+2 if x is even
+	&quot;&quot;&quot;&lt;/span&gt;
+	
+	&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# x is odd&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;          &lt;span class=&quot;c&quot;&gt;# x is even&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_two&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+	
+	&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Code&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;duplication&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_two&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As one can see, there is a code duplication appears in the end of this function, because we have to check whether we need to apply &lt;code class=&quot;highlighter-rouge&quot;&gt;add_one&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;add_two&lt;/code&gt; to the variable &lt;code class=&quot;highlighter-rouge&quot;&gt;x&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To address this issue, we can definine a function pointer and assign it once we know &lt;code class=&quot;highlighter-rouge&quot;&gt;x&lt;/code&gt; is a odd number or even number. Until the end of the program, we don’t have to write annoying &lt;code class=&quot;highlighter-rouge&quot;&gt;if&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;else&lt;/code&gt; again.&lt;/p&gt;
+
+&lt;p&gt;Above code snippet can reduce to:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ctypedef&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ADD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;cdef&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear_transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+	This function will return (x+1)*2+1 if x is odd
+	                          (x+2)*2+2 if x is even
+	&quot;&quot;&quot;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;ADD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;
+	&lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# x is odd&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;          &lt;span class=&quot;c&quot;&gt;# x is even&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_two&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;This code snippet is more readable. Function pointer do make our code looks neat!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: Although there is only one duplication in above example, there may be a lot in real code, which can show function pointer’s value more obviously.&lt;/p&gt;
+
+&lt;h2 id=&quot;function-pointers-limitation&quot;&gt;Function Pointer’s Limitation&lt;/h2&gt;
+
+&lt;p&gt;However, function pointer is not omnipotent. Although they provide a good way to write generic code, unfortunately they don’t provide you with &lt;strong&gt;type generality&lt;/strong&gt;. What do I mean?&lt;/p&gt;
+
+&lt;p&gt;Consider if we now have the following two C functions that both add 1 to the argument variable, one is for type &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; and one is for type &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_one_float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_one_double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Now do the imagination process described in our first example again, base on the same reason, we indeed need to load these extern C functions to speed up the following Cython function &lt;code class=&quot;highlighter-rouge&quot;&gt;linear_transform &lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;cdef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear_transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+	This function will return (x+1)*2+1 with the 
+	same type as input argument
+	&quot;&quot;&quot;&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Don’t be scared if you havn’t seem &lt;code class=&quot;highlighter-rouge&quot;&gt;floating&lt;/code&gt; before, to be brief, &lt;code class=&quot;highlighter-rouge&quot;&gt;floating&lt;/code&gt; here refers to either type &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; &lt;strong&gt;or&lt;/strong&gt; type &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt;.
+It is just a feature called &lt;a href=&quot;http://docs.cython.org/src/userguide/fusedtypes.html&quot;&gt;fused types&lt;/a&gt; in Cython, which basically serves the same role like templates in C++ or generics in Java.&lt;/p&gt;
+
+&lt;p&gt;Note that now we can’t define a function pointer and assign it like what we did in our first example, because C functions &lt;code class=&quot;highlighter-rouge&quot;&gt;add_one_float&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;add_one_double&lt;/code&gt; have different function signatures. Since C is a strong typed language, it’s hard to define a function pointer that can point to functions with different types. (which is why, for example, the standard library &lt;code class=&quot;highlighter-rouge&quot;&gt;qsort&lt;/code&gt; still requires a function that takes &lt;code class=&quot;highlighter-rouge&quot;&gt;void*&lt;/code&gt; pointer.)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;NOTE&lt;/strong&gt;: Usage of &lt;code class=&quot;highlighter-rouge&quot;&gt;void*&lt;/code&gt; pointer in C is beyond the scope of this blog post, you can find a simple introduction &lt;a href=&quot;http://www.circuitstoday.com/void-pointers-in-c&quot;&gt;here&lt;/a&gt;. But remember, it’s dangerous.&lt;/p&gt;
+
+&lt;h2 id=&quot;finction-pointer--fused-types&quot;&gt;Finction Pointer + Fused Types&lt;/h2&gt;
+
+&lt;p&gt;Fortunately, &lt;a href=&quot;http://docs.cython.org/src/userguide/fusedtypes.html&quot;&gt;fused types&lt;/a&gt; is here to rescue us. With this useful tool, we can actually define fused types function pointer to solve above problem!&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ctypedef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ADD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;cdef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear_transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+	This function will return (x+1)*2+1 with the 
+	same type as input argument
+	&quot;&quot;&quot;&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;ADD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_float&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floating&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_double&lt;/span&gt;
+		
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# (x+1)&lt;/span&gt;
+
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;         &lt;span class=&quot;c&quot;&gt;# (x+1)*2&lt;/span&gt;
+	
+	&lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# (x+1)*2+1&lt;/span&gt;
+	
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ans&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Note that since &lt;code class=&quot;highlighter-rouge&quot;&gt;floating&lt;/code&gt; can represent either &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt;, function pointer of type &lt;code class=&quot;highlighter-rouge&quot;&gt;floating&lt;/code&gt; have the ability to achieve &lt;strong&gt;type generality&lt;/strong&gt;, which is not available before we combine fused types with function pointer.&lt;/p&gt;
+
+&lt;p&gt;Finally, we are going to demystify the secret of this magic trick performed by Cython and make sure that it works properly.&lt;/p&gt;
+
+&lt;h2 id=&quot;demystifying-how-it-work&quot;&gt;Demystifying How It Work&lt;/h2&gt;
+
+&lt;p&gt;In order to know how Cython fused types function pointer works, let’s become a ninja and dive deep to peep the C code generated by Cython.&lt;/p&gt;
+
+&lt;p&gt;In the generated C code of above Cython function, there is no &lt;code class=&quot;highlighter-rouge&quot;&gt;if floating is float:&lt;/code&gt; anymore. Actually, to accommodate fused types &lt;code class=&quot;highlighter-rouge&quot;&gt;floating&lt;/code&gt;, Cython generates one version of the function for &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; and another for &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;And in the &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; version function, it directly assign the function pointer we declared to the actual C function that will be called if &lt;code class=&quot;highlighter-rouge&quot;&gt;x&lt;/code&gt; is of type &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;	&lt;span class=&quot;n&quot;&gt;__pyx_v_add_one&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Same as the &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt; version, &lt;code class=&quot;highlighter-rouge&quot;&gt;double&lt;/code&gt; version also generates&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;	&lt;span class=&quot;n&quot;&gt;__pyx_v_add_one&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one_double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;which directly assigns function pointer to the correct function.&lt;/p&gt;
+
+&lt;p&gt;In fact, this direct assignment is an optimization performed by C compiler since it can identify variables that remain unchanged within a function. It would find out that function pointer &lt;code class=&quot;highlighter-rouge&quot;&gt;__pyx_v_add_one&lt;/code&gt; is only set once to a constant, i.e., an extern function. Hence after object code is linked, &lt;code class=&quot;highlighter-rouge&quot;&gt;__pyx_v_add_one &lt;/code&gt; will directly be assigned to the C function.&lt;/p&gt;
+
+&lt;p&gt;On the contrary, Python interpreter can provides only little in static analysis and code optimization since the language design doesn’t have the &lt;em&gt;compile&lt;/em&gt; phase.&lt;/p&gt;
+
+&lt;p&gt;In sum, always implement your computation heavy code in Cython instead of Python.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;Combining function pointer with fused types raises its power to another higher level. Actually, it is a generalized version of original function pointers, and can be used in lots of places to make our code looks more readable and cleaner.
+Also, it is often a good idea to check the C code generated by Cython so as to make sure it’s doing what you hoped.&lt;/p&gt;
+
+&lt;p&gt;See you next time!&lt;/p&gt;
+</description>
+        <pubDate>Mon, 18 Jul 2016 07:52:21 +0800</pubDate>
+        <link>http://yclin.me/2016/07/Function-Pointer</link>
+        <guid isPermaLink="true">http://yclin.me/2016/07/Function-Pointer</guid>
+        
+        
+        <category>GSoC</category>
+        
+      </item>
     
       <item>
         <title>scikit-learn KMeans Now Support Fused Types</title>
