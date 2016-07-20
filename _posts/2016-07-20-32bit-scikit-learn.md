@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "How to set up 32bit scikit-learn on Mac without additional installation "
+title:  "Using Function Pointer to Maximize Code Reusability in Cython"
 date:   2016-07-17 18:52:21 -0500
 categories: GSoC
 comments: true
