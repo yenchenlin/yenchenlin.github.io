@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="t-white">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>How to set up 32bit scikit-learn on Mac without additional installation </title>
+  <meta name="description" content="Sometimes you may want to know how scikit-learn behaves when it’s running on 32-bit Python. This blog post try to give the simplest solution.">
+
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700|Roboto+Mono:400,500' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://yclin.me/2016/07/32bit-scikit-learn">
+  <link rel="alternate" type="application/rss+xml" title="Yen" href="http://yclin.me/feed.xml">
+</head>
+
+  <body>
+    <nav class="c-navigation is-fixed">
+  <div class="c-navigation__container u-container">
+    <a class="c-navigation__item " href="/">About</a>
+    <a class="c-navigation__item " href="/blog/">Blog</a>
+    <!-- <a class="c-navigation__item " href="/about/">About</a> -->
+  </div>
+</nav>
+
+
+    <article class="c-article">
+  <header class="c-header c-article__header">
+    <div class="u-container">
+      <h1 class="c-header__title">How to set up 32bit scikit-learn on Mac without additional installation </h1>
+    </div>
+  </header>
+
+  <div class="c-article__main">
+    <p>Sometimes you may want to know how scikit-learn behaves when it’s running on 32-bit Python. This blog post try to give the simplest solution.</p>
+
+<h2 id="step-by-step">Step by Step</h2>
+
+<p>Below I’ll go through the procedure step by step:</p>
+
+<ol>
+  <li>
+    <p>Type the following command and make sure it outputs <code class="highlighter-rouge">2147483647</code>.</p>
+
+    <p><code class="highlighter-rouge">
+ arch -32 /System/Library/Frameworks/Python.framework/Versions/2.7/bin/python -c "import sys; print sys.maxint"
+</code></p>
+  </li>
+  <li>
+    <p>Modify <strong>line 5</strong> of <code class="highlighter-rouge">Makefile</code> exists in root directory of scikit-learn becomes:</p>
+
+    <p><code class="highlighter-rouge">
+ PYTHON ?= arch -32 /System/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+</code></p>
+
+    <p>and modify <strong>line 11</strong> to:</p>
+
+    <p><code class="highlighter-rouge">
+ BITS := $(shell PYTHON -c 'import struct; print(8 * 	struct.calcsize("P"))')
+</code></p>
+  </li>
+  <li>
+    <p>Type</p>
+
+    <p><code class="highlighter-rouge">
+ sudo make
+</code></p>
+
+    <p>in the root directory of scikit-learn and you are good to go!</p>
+  </li>
+</ol>
+
+<h2 id="verification">Verification</h2>
+
+<p>You can verify if 32-bit version of scikit-learn built successfully by typing:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>arch -32 /System/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+</code></pre>
+</div>
+
+<p>to enter 32-bit Python shell.</p>
+
+<p>After that, type:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>import sklearn
+</code></pre>
+</div>
+
+<p>to check if <code class="highlighter-rouge">sklearn</code> can now run on 32-bit Python.</p>
+
+<p>Hope this helps!</p>
+
+
+<div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//yclin-blog.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+  </div>
+</article>
+
+
+    <footer class="c-footer">
+  <div class="u-container c-footer__container">
+    <p>&copy; Yen 2016</p>
+    <p>
+      <a href="https://twitter.com/yenchenlin1994">Twitter</a>
+      <a href="https://github.com/yenchenlin1994">Github</a>
+      
+      
+    </p>
+  </div>
+</footer>
+
+  </body>
+</html>
