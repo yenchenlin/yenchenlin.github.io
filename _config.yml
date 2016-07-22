@@ -3,7 +3,7 @@ title: Yen
 email: yenchenlin1994@gmail.com
 description: >
   This blog talks about how to make machine learn.
-baseurl: ""
+baseurl: "/blog"
 url: "http://yclin.me"
 fixedNav: 'true' # true or false
 theme: white # green, blue, orange, purple, grey
