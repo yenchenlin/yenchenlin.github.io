@@ -68,12 +68,21 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	var ReactGA = __webpack_require__(360);
+	
 	var initialState = window.__INITIAL_STATE__;
+	
+	ReactGA.initialize('UA-92164863-1');
+	
+	var logPageView = function logPageView() {
+	  ReactGA.set({ page: window.location.pathname });
+	  ReactGA.pageview(window.location.pathname);
+	};
 	
 	_reactDom2.default.render(_react2.default.createElement(
 	  _reactRedux.Provider,
 	  { store: (0, _reduxStore2.default)(initialState) },
-	  _react2.default.createElement(_reactRouter.Router, { history: _reactRouter.browserHistory, routes: _routes2.default })
+	  _react2.default.createElement(_reactRouter.Router, { history: _reactRouter.browserHistory, routes: _routes2.default, onUpdate: logPageView })
 	), document.getElementById('root'));
 
 /***/ },
@@ -23945,7 +23954,7 @@
 	
 	var _HomePage2 = _interopRequireDefault(_HomePage);
 	
-	var _ParksContainer = __webpack_require__(364);
+	var _ParksContainer = __webpack_require__(373);
 	
 	var _ParksContainer2 = _interopRequireDefault(_ParksContainer);
 	
@@ -38549,19 +38558,19 @@
 	
 	var _Intro2 = _interopRequireDefault(_Intro);
 	
-	var _Feature = __webpack_require__(360);
+	var _Feature = __webpack_require__(369);
 	
 	var _Feature2 = _interopRequireDefault(_Feature);
 	
-	var _Trainning = __webpack_require__(361);
+	var _Trainning = __webpack_require__(370);
 	
 	var _Trainning2 = _interopRequireDefault(_Trainning);
 	
-	var _Code = __webpack_require__(362);
+	var _Code = __webpack_require__(371);
 	
 	var _Code2 = _interopRequireDefault(_Code);
 	
-	var _Footer = __webpack_require__(363);
+	var _Footer = __webpack_require__(372);
 	
 	var _Footer2 = _interopRequireDefault(_Footer);
 	
@@ -38615,9 +38624,8 @@
 	        null,
 	        _react2.default.createElement(_Navbar2.default, null),
 	        _react2.default.createElement(_Banner2.default, null),
-	        _react2.default.createElement(_Intro2.default, null),
+	        _react2.default.createElement(_Intro2.default, { scrollY: scrollY }),
 	        _react2.default.createElement(_Trainning2.default, { scrollY: scrollY }),
-	        _react2.default.createElement(_Feature2.default, null),
 	        _react2.default.createElement(_Footer2.default, null)
 	      );
 	    }
@@ -38642,7 +38650,8 @@
 	
 	var _templateObject = _taggedTemplateLiteral(['\n  position: absolute;\n  width: 100%;\n  background: rgba(22, 22, 22, .9);\n  border-bottom: 1px solid rgba(161, 166, 180, .03);\n  padding: 0px 16px;\n  height: 48px;\n  z-index: 1000;\n  display: flex;\n  justify-content: space-between;\n'], ['\n  position: absolute;\n  width: 100%;\n  background: rgba(22, 22, 22, .9);\n  border-bottom: 1px solid rgba(161, 166, 180, .03);\n  padding: 0px 16px;\n  height: 48px;\n  z-index: 1000;\n  display: flex;\n  justify-content: space-between;\n']),
 	    _templateObject2 = _taggedTemplateLiteral(['\n  display: block;\n  flex-grow: 0;\n  color: rgba(194, 197, 207, .45) !important\n  font-size: 12px;\n  height: 48px;\n  line-height: 48px;\n'], ['\n  display: block;\n  flex-grow: 0;\n  color: rgba(194, 197, 207, .45) !important\n  font-size: 12px;\n  height: 48px;\n  line-height: 48px;\n']),
-	    _templateObject3 = _taggedTemplateLiteral(['\n  list-style: none;\n  padding: 0;\n  margin: 0;\n  width: 30%;\n  display: flex;\n  justify-content: space-between;\n'], ['\n  list-style: none;\n  padding: 0;\n  margin: 0;\n  width: 30%;\n  display: flex;\n  justify-content: space-between;\n']);
+	    _templateObject3 = _taggedTemplateLiteral(['\n  list-style: none;\n  padding: 0;\n  margin: 0;\n  width: 30%;\n  display: flex;\n  justify-content: space-between;\n'], ['\n  list-style: none;\n  padding: 0;\n  margin: 0;\n  width: 30%;\n  display: flex;\n  justify-content: space-between;\n']),
+	    _templateObject4 = _taggedTemplateLiteral(['\n  display: block;\n  flex-grow: 0;\n  color: rgba(194, 197, 207, .45) !important\n  font-size: 12px;\n  height: 48px;\n  line-height: 48px;\n  cursor: pointer;\n'], ['\n  display: block;\n  flex-grow: 0;\n  color: rgba(194, 197, 207, .45) !important\n  font-size: 12px;\n  height: 48px;\n  line-height: 48px;\n  cursor: pointer;\n']);
 	
 	var _react = __webpack_require__(1);
 	
@@ -38666,7 +38675,7 @@
 	var Logo = _styledComponents2.default.div(_templateObject2);
 	
 	var OptionList = _styledComponents2.default.ul(_templateObject3);
-	var Option = _styledComponents2.default.li(_templateObject2);
+	var Option = _styledComponents2.default.li(_templateObject4);
 	
 	var Navbar = function (_React$Component) {
 	  _inherits(Navbar, _React$Component);
@@ -38803,18 +38812,28 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _templateObject = _taggedTemplateLiteral(['\n  width: 100%;\n  background: #f6f6f8 linear-gradient(#fff, #f6f6f8);\n'], ['\n  width: 100%;\n  background: #f6f6f8 linear-gradient(#fff, #f6f6f8);\n']),
-	    _templateObject2 = _taggedTemplateLiteral(['\n  width: 50%;\n  padding: 7rem 7rem;\n  p {\n    font-size: 16px;\n    color: #999; \n    line-height: 1.5;\n  }\n'], ['\n  width: 50%;\n  padding: 7rem 7rem;\n  p {\n    font-size: 16px;\n    color: #999; \n    line-height: 1.5;\n  }\n']),
-	    _templateObject3 = _taggedTemplateLiteral(['\n  width: 100%;\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 8px;\n  a {\n    padding: 8px;\n    text-decoration: none;\n    color: #222;\n    transition: all .3s ease-in-out;\n    box-shadow: inset 0 0 0 0 #222; \n    border: 1px solid #222;\n    &:hover {\n      box-shadow: inset 300px 0 0 0 #222;\n      color: #FFF;\n    }\n  }\n'], ['\n  width: 100%;\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 8px;\n  a {\n    padding: 8px;\n    text-decoration: none;\n    color: #222;\n    transition: all .3s ease-in-out;\n    box-shadow: inset 0 0 0 0 #222; \n    border: 1px solid #222;\n    &:hover {\n      box-shadow: inset 300px 0 0 0 #222;\n      color: #FFF;\n    }\n  }\n']),
-	    _templateObject4 = _taggedTemplateLiteral(['\n  -webkit-background-clip: text;\n  -webkit-text-fill-color: transparent;\n'], ['\n  -webkit-background-clip: text;\n  -webkit-text-fill-color: transparent;\n']);
+	var _templateObject = _taggedTemplateLiteral(['\n  width: 100%;\n  background: #f6f6f8 linear-gradient(#fff, #f6f6f8);\n  padding: 3rem 0;\n'], ['\n  width: 100%;\n  background: #f6f6f8 linear-gradient(#fff, #f6f6f8);\n  padding: 3rem 0;\n']),
+	    _templateObject2 = _taggedTemplateLiteral(['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  h2 {\n    font-weight: bold;\n    background: #FFF;\n    color: #222;\n    padding: 32px;\n  }\n'], ['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  h2 {\n    font-weight: bold;\n    background: #FFF;\n    color: #222;\n    padding: 32px;\n  }\n']),
+	    _templateObject3 = _taggedTemplateLiteral(['\n  width: 50%;\n  padding: 0 7rem;\n  h2 {\n    font-size: 24px;\n  }\n'], ['\n  width: 50%;\n  padding: 0 7rem;\n  h2 {\n    font-size: 24px;\n  }\n']),
+	    _templateObject4 = _taggedTemplateLiteral(['\n    font-size: 16px;\n    color: #999; \n    line-height: 1.5;\n    transition: all .4s ease-in;\n    opacity: ', '\n    margin-top: ', '\n'], ['\n    font-size: 16px;\n    color: #999; \n    line-height: 1.5;\n    transition: all .4s ease-in;\n    opacity: ', '\n    margin-top: ', '\n']),
+	    _templateObject5 = _taggedTemplateLiteral(['\n  width: 100%;\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 8px;\n  a {\n    padding: 8px;\n    text-decoration: none;\n    color: #222;\n    transition: all .3s ease-in-out;\n    box-shadow: inset 0 0 0 0 #222; \n    border: 1px solid #222;\n    &:hover {\n      box-shadow: inset 300px 0 0 0 #222;\n      color: #FFF;\n    }\n  }\n'], ['\n  width: 100%;\n  display: flex;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 8px;\n  a {\n    padding: 8px;\n    text-decoration: none;\n    color: #222;\n    transition: all .3s ease-in-out;\n    box-shadow: inset 0 0 0 0 #222; \n    border: 1px solid #222;\n    &:hover {\n      box-shadow: inset 300px 0 0 0 #222;\n      color: #FFF;\n    }\n  }\n']),
+	    _templateObject6 = _taggedTemplateLiteral(['\n  -webkit-background-clip: text;\n  -webkit-text-fill-color: transparent;\n  transition: all .4s ease-in;\n  opacity: ', '\n  margin-top: ', '\n'], ['\n  -webkit-background-clip: text;\n  -webkit-text-fill-color: transparent;\n  transition: all .4s ease-in;\n  opacity: ', '\n  margin-top: ', '\n']);
 	
 	var _react = __webpack_require__(1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
+	var _reactDom = __webpack_require__(32);
+	
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+	
 	var _styledComponents = __webpack_require__(287);
 	
 	var _styledComponents2 = _interopRequireDefault(_styledComponents);
+	
+	var _reactGa = __webpack_require__(360);
+	
+	var _reactGa2 = _interopRequireDefault(_reactGa);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -38827,9 +38846,20 @@
 	function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 	
 	var Container = _styledComponents2.default.div(_templateObject);
-	var IntroContent = _styledComponents2.default.div(_templateObject2);
-	var Link = _styledComponents2.default.div(_templateObject3);
-	var Head = _styledComponents2.default.h2(_templateObject4);
+	var Title = _styledComponents2.default.div(_templateObject2);
+	var IntroContent = _styledComponents2.default.div(_templateObject3);
+	var Content = _styledComponents2.default.p(_templateObject4, function (props) {
+	  return props.active ? 1 : 0;
+	}, function (props) {
+	  return props.active ? '8px' : '64px';
+	});
+	
+	var Link = _styledComponents2.default.div(_templateObject5);
+	var Head = _styledComponents2.default.h2(_templateObject6, function (props) {
+	  return props.active ? 1 : 0;
+	}, function (props) {
+	  return props.active ? 0 : '32px';
+	});
 	
 	var Intro = function (_React$Component) {
 	  _inherits(Intro, _React$Component);
@@ -38837,26 +38867,66 @@
 	  function Intro(props) {
 	    _classCallCheck(this, Intro);
 	
-	    return _possibleConstructorReturn(this, (Intro.__proto__ || Object.getPrototypeOf(Intro)).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Intro.__proto__ || Object.getPrototypeOf(Intro)).call(this, props));
+	
+	    _this.GAEvent = function () {
+	      _reactGa2.default.event({
+	        category: 'intro',
+	        action: 'link',
+	        label: 'github'
+	      });
+	      return;
+	    };
+	
+	    _this.state = {
+	      activeHead: false,
+	      activeIntro: false
+	    };
+	    return _this;
 	  }
 	
 	  _createClass(Intro, [{
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps() {
+	      var headTop = _reactDom2.default.findDOMNode(this.refs.head).getBoundingClientRect().top + document.body.scrollTop;
+	      var introTop = _reactDom2.default.findDOMNode(this.refs.intro).getBoundingClientRect().top + document.body.scrollTop;
+	      if (this.props.scrollY + 400 > headTop && !this.state.activeIntro) {
+	        this.setState({ activeHead: true });
+	      }
+	      if (this.props.scrollY + 400 > introTop && !this.state.activeIntro) {
+	        this.setState({ activeIntro: true });
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var _state = this.state,
+	          activeHead = _state.activeHead,
+	          activeIntro = _state.activeIntro;
+	
 	      return _react2.default.createElement(
 	        Container,
 	        null,
+	        _react2.default.createElement(
+	          Title,
+	          null,
+	          _react2.default.createElement(
+	            'h2',
+	            null,
+	            'Introduction'
+	          )
+	        ),
 	        _react2.default.createElement(
 	          IntroContent,
 	          null,
 	          _react2.default.createElement(
 	            Head,
-	            null,
+	            { ref: 'head', active: activeHead },
 	            'Tactics of Adversarial Attacks on Deep Reinforcement Learning Agents'
 	          ),
 	          _react2.default.createElement(
-	            'p',
-	            null,
+	            Content,
+	            { ref: 'intro', active: activeIntro },
 	            'Deep Reinforcement Learning (RL) agents have been shown to be vulnerable to adversarial attacks Huang et al. (2017).  However, no tactic other than attacking at every time steps has been explored. In this work, we introduced two novel tactics for adversarial attacks on deep RL agents (i.e., parsimonious attack and enchanting attack). For parsimonious attack, we aim at minimizing the reward while limiting the number of attacks to prevent the attack to be spotted. We propose a novel method to selectively force the least likely action only on a limited number of time steps. For enchanting attack, we aim at luring the agent to a designated target state specified by the adversary. We propose to combine a generative model for predicting the future states and a planning algorithm to launch a sequence of adversarial attacks. In 5 Atari games, our proposed methods significantly reduce reward on both DQN and A3C agents by attacking very few frames (on average 25% time steps) and luring deep RL agent toward target states approximately 40- steps in the future in some games with \u223C 70% success rate.'
 	          ),
 	          _react2.default.createElement(
@@ -38864,7 +38934,7 @@
 	            null,
 	            _react2.default.createElement(
 	              'a',
-	              { target: '_blank', href: 'https://github.com/yenchenlin/adversarial-deep-rl' },
+	              { onClick: this.GAEvent, target: '_blank', href: 'https://github.com/yenchenlin/adversarial-deep-rl' },
 	              'View on github'
 	            )
 	          )
@@ -38880,6 +38950,684 @@
 
 /***/ },
 /* 360 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * React Google Analytics Module
+	 *
+	 * @package react-ga
+	 * @author  Adam Lofting <adam@mozillafoundation.org>
+	 *          Atul Varma <atul@mozillafoundation.org>
+	 */
+	
+	/**
+	 * Utilities
+	 */
+	var format = __webpack_require__(361);
+	var removeLeadingSlash = __webpack_require__(366);
+	var trim = __webpack_require__(364);
+	
+	var warn = __webpack_require__(365);
+	var log = __webpack_require__(367);
+	
+	var _debug = false;
+	var _titleCase = true;
+	
+	var _format = function (s) {
+	  return format(s, _titleCase);
+	};
+	
+	var ReactGA = {
+	  initialize: function (gaTrackingID, options) {
+	    if (!gaTrackingID) {
+	      warn('gaTrackingID is required in initialize()');
+	      return;
+	    }
+	
+	    if (options) {
+	      if (options.debug && options.debug === true) {
+	        _debug = true;
+	      }
+	
+	      if (options.titleCase === false) {
+	        _titleCase = false;
+	      }
+	    }
+	
+	    // https://developers.google.com/analytics/devguides/collection/analyticsjs/
+	    // jscs:disable
+	    (function (i, s, o, g, r, a, m) {
+	      i['GoogleAnalyticsObject'] = r;
+	      i[r] = i[r] || function () {
+	        (i[r].q = i[r].q || []).push(arguments);
+	      }, i[r].l = 1 * new Date();
+	      a = s.createElement(o),
+	          m = s.getElementsByTagName(o)[0];
+	      a.async = 1;
+	      a.src = g;
+	      m.parentNode.insertBefore(a, m);
+	    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+	    // jscs:enable
+	
+	    if (options && options.gaOptions) {
+	      ga('create', gaTrackingID, options.gaOptions);
+	    } else {
+	      ga('create', gaTrackingID, 'auto');
+	    }
+	  },
+	
+	  /**
+	   * ga:
+	   * Returns the original GA object.
+	   */
+	  ga: function () {
+	    if (arguments.length > 0) {
+	      ga.apply(this, arguments);
+	      if (_debug) {
+	        log('called ga(\'arguments\');');
+	        log('with arguments: ' + JSON.stringify([].slice.apply(arguments)));
+	      }
+	
+	      return;
+	    }
+	
+	    return ga;
+	  },
+	
+	  /**
+	   * set:
+	   * GA tracker set method
+	   * @param {Object} fieldsObject - a field/value pair or a group of field/value pairs on the tracker
+	   */
+	  set: function (fieldsObject) {
+	    if (typeof ga === 'function') {
+	      if (!fieldsObject) {
+	        warn('`fieldsObject` is required in .set()');
+	        return;
+	      }
+	
+	      if (typeof fieldsObject !== 'object') {
+	        warn('Expected `fieldsObject` arg to be an Object');
+	        return;
+	      }
+	
+	      if (Object.keys(fieldsObject).length === 0) {
+	        warn('empty `fieldsObject` given to .set()');
+	      }
+	
+	      ga('set', fieldsObject);
+	
+	      if (_debug) {
+	        log('called ga(\'set\', fieldsObject);');
+	        log('with fieldsObject: ' + JSON.stringify(fieldsObject));
+	      }
+	    }
+	  },
+	
+	  /**
+	   * send:
+	   * Clone of the low level `ga.send` method
+	   * WARNING: No validations will be applied to this
+	   * @param  {Object} fieldObject - field object for tracking different analytics
+	   */
+	  send: function (fieldObject) {
+	    if (typeof ga === 'function') {
+	      ga('send', fieldObject);
+	
+	      if (_debug) {
+	        log('called ga(\'send\', fieldObject);');
+	        log('with fieldObject: ' + JSON.stringify(fieldObject));
+	      }
+	    }
+	  },
+	
+	  /**
+	   * pageview:
+	   * Basic GA pageview tracking
+	   * @param  {String} path - the current page page e.g. '/about'
+	   */
+	  pageview: function (path) {
+	    if (!path) {
+	      warn('path is required in .pageview()');
+	      return;
+	    }
+	
+	    path = trim(path);
+	    if (path === '') {
+	      warn('path cannot be an empty string in .pageview()');
+	      return;
+	    }
+	
+	    if (typeof ga === 'function') {
+	      ga('send', 'pageview', path);
+	
+	      if (_debug) {
+	        log('called ga(\'send\', \'pageview\', path);');
+	        log('with path: ' + path);
+	      }
+	    }
+	  },
+	
+	  /**
+	   * modalview:
+	   * a proxy to basic GA pageview tracking to consistently track
+	   * modal views that are an equivalent UX to a traditional pageview
+	   * @param  {String} modalName e.g. 'add-or-edit-club'
+	   */
+	  modalview: function (modalName) {
+	    if (!modalName) {
+	      warn('modalName is required in .modalview(modalName)');
+	      return;
+	    }
+	
+	    modalName = trim(modalName);
+	    modalName = removeLeadingSlash(modalName);
+	
+	    if (modalName === '') {
+	      warn('modalName cannot be an empty string or a single / in .modalview()');
+	      return;
+	    }
+	
+	    if (typeof ga === 'function') {
+	      modalName = trim(modalName);
+	      var path = '/modal/' + modalName;
+	      ga('send', 'pageview', path);
+	
+	      if (_debug) {
+	        log('called ga(\'send\', \'pageview\', path);');
+	        log('with path: ' + path);
+	      }
+	    }
+	  },
+	
+	  /**
+	   * timing:
+	   * GA timing
+	   * @param args.category {String} required
+	   * @param args.variable {String} required
+	   * @param args.value  {Int}  required
+	   * @param args.label  {String} required
+	   */
+	  timing: function (args) {
+	    if (typeof ga === 'function') {
+	      if (!args || !args.category || !args.variable
+	          || !args.value || typeof args.value !== 'number') {
+	        warn('args.category, args.variable ' +
+	              'AND args.value are required in timing() ' +
+	              'AND args.value has to be a number');
+	        return;
+	      }
+	
+	      //Required Fields
+	      var fieldObject = {
+	        hitType: 'timing',
+	        timingCategory: _format(args.category),
+	        timingVar: _format(args.variable),
+	        timingValue: args.value
+	      };
+	
+	      if (args.label) {
+	        fieldObject.timingLabel = _format(args.label);
+	      }
+	
+	      this.send(fieldObject);
+	    }
+	  },
+	
+	  /**
+	   * event:
+	   * GA event tracking
+	   * @param args.category {String} required
+	   * @param args.action {String} required
+	   * @param args.label {String} optional
+	   * @param args.value {Int} optional
+	   * @param args.nonInteraction {boolean} optional
+	   */
+	  event: function (args) {
+	    if (typeof ga === 'function') {
+	
+	      // Simple Validation
+	      if (!args || !args.category || !args.action) {
+	        warn('args.category AND args.action are required in event()');
+	        return;
+	      }
+	
+	      // Required Fields
+	      var fieldObject = {
+	        hitType: 'event',
+	        eventCategory: _format(args.category),
+	        eventAction: _format(args.action)
+	      };
+	
+	      // Optional Fields
+	      if (args.label) {
+	        fieldObject.eventLabel = _format(args.label);
+	      }
+	
+	      if (args.value) {
+	        if (typeof args.value !== 'number') {
+	          warn('Expected `args.value` arg to be a Number.');
+	        } else {
+	          fieldObject.eventValue = args.value;
+	        }
+	      }
+	
+	      if (args.nonInteraction) {
+	        if (typeof args.nonInteraction !== 'boolean') {
+	          warn('`args.nonInteraction` must be a boolean.');
+	        } else {
+	          fieldObject.nonInteraction = args.nonInteraction;
+	        }
+	      }
+	
+	      if (args.transport) {
+	        if (typeof args.transport !== 'string') {
+	          warn('`args.transport` must be a string.');
+	        } else {
+	          if (['beacon', 'xhr', 'image'].indexOf(args.transport) === -1) {
+	            warn('`args.transport` must be either one of these values: `beacon`, `xhr` or `image`');
+	          }
+	
+	          fieldObject.transport = args.transport;
+	        }
+	      }
+	
+	      // Send to GA
+	      this.send(fieldObject);
+	    }
+	  },
+	
+	  /**
+	   * exception:
+	   * GA exception tracking
+	   * @param args.description {String} optional
+	   * @param args.fatal {boolean} optional
+	   */
+	  exception: function (args) {
+	    if (typeof ga === 'function') {
+	
+	      // Required Fields
+	      var fieldObject = {
+	        hitType: 'exception'
+	      };
+	
+	      // Optional Fields
+	      if (args.description) {
+	        fieldObject.exDescription = _format(args.description);
+	      }
+	
+	      if (typeof args.fatal !== 'undefined') {
+	        if (typeof args.fatal !== 'boolean') {
+	          warn('`args.fatal` must be a boolean.');
+	        } else {
+	          fieldObject.exFatal = args.fatal;
+	        }
+	      }
+	
+	      // Send to GA
+	      this.send(fieldObject);
+	    }
+	  },
+	
+	  plugin: {
+	    /**
+	     * require:
+	     * GA requires a plugin
+	     * @param name {String} e.g. 'ecommerce' or 'myplugin'
+	     * @param options {Object} optional e.g {path: '/log', debug: true}
+	     */
+	    require: function (name, options) {
+	      if (typeof ga === 'function') {
+	
+	        // Required Fields
+	        if (!name) {
+	          warn('`name` is required in .require()');
+	          return;
+	        }
+	
+	        name = trim(name);
+	        if (name === '') {
+	          warn('`name` cannot be an empty string in .require()');
+	          return;
+	        }
+	
+	        // Optional Fields
+	        if (options) {
+	          if (typeof options !== 'object') {
+	            warn('Expected `options` arg to be an Object');
+	            return;
+	          }
+	
+	          if (Object.keys(options).length === 0) {
+	            warn('Empty `options` given to .require()');
+	          }
+	
+	          ga('require', name, options);
+	
+	          if (_debug) {
+	            log('called ga(\'require\', \'' + name + '\', ' + JSON.stringify(options) + ');');
+	          }
+	
+	          return;
+	        } else {
+	          ga('require', name);
+	
+	          if (_debug) {
+	            log('called ga(\'require\', \'' + name + '\');');
+	          }
+	
+	          return;
+	        }
+	      }
+	    },
+	
+	    /**
+	     * execute:
+	     * GA execute action for plugin
+	     * Takes variable number of arguments
+	     * @param pluginName {String} e.g. 'ecommerce' or 'myplugin'
+	     * @param action {String} e.g. 'addItem' or 'myCustomAction'
+	     * @param actionType {String} optional e.g. 'detail'
+	     * @param payload {Object} optional e.g { id: '1x5e', name : 'My product to track' }
+	     */
+	    execute: function () {
+	      var args = Array.prototype.slice.call(arguments);
+	
+	      var pluginName = args[0];
+	      var action = args[1];
+	      var payload;
+	      var actionType;
+	
+	      if (args.length === 3) {
+	        payload = args[2];
+	      } else {
+	        actionType = args[2];
+	        payload = args[3];
+	      }
+	
+	      if (typeof ga === 'function') {
+	        if (typeof pluginName !== 'string') {
+	          warn('Expected `pluginName` arg to be a String.');
+	        } else if (typeof action !== 'string') {
+	          warn('Expected `action` arg to be a String.');
+	        } else {
+	          var command = pluginName + ':' + action;
+	          payload = payload || null;
+	          if (actionType && payload) {
+	            ga(command, actionType, payload);
+	            if (_debug) {
+	              log('called ga(\'' + command + '\');');
+	              log('actionType: "' + actionType + '" with payload: ' + JSON.stringify(payload));
+	            }
+	          } else if (payload) {
+	            ga(command, payload);
+	            if (_debug) {
+	              log('called ga(\'' + command + '\');');
+	              log('with payload: ' + JSON.stringify(payload));
+	            }
+	          } else {
+	            ga(command);
+	            if (_debug) {
+	              log('called ga(\'' + command + '\');');
+	            }
+	
+	          }
+	        }
+	      }
+	    }
+	  },
+	
+	  /**
+	   * outboundLink:
+	   * GA outboundLink tracking
+	   * @param args.label {String} e.g. url, or 'Create an Account'
+	   * @param {function} hitCallback - Called after processing a hit.
+	   */
+	  outboundLink: function (args, hitCallback) {
+	    if (typeof hitCallback !== 'function') {
+	      warn('hitCallback function is required');
+	      return;
+	    }
+	
+	    if (typeof ga === 'function') {
+	
+	      // Simple Validation
+	      if (!args || !args.label) {
+	        warn('args.label is required in outboundLink()');
+	        return;
+	      }
+	
+	      // Required Fields
+	      var fieldObject = {
+	        hitType: 'event',
+	        eventCategory: 'Outbound',
+	        eventAction: 'Click',
+	        eventLabel: _format(args.label)
+	      };
+	
+	      var safetyCallbackCalled = false;
+	      var safetyCallback = function () {
+	
+	        // This prevents a delayed response from GA
+	        // causing hitCallback from being fired twice
+	        safetyCallbackCalled = true;
+	
+	        hitCallback();
+	      };
+	
+	      // Using a timeout to ensure the execution of critical application code
+	      // in the case when the GA server might be down
+	      // or an ad blocker prevents sending the data
+	
+	      // register safety net timeout:
+	      var t = setTimeout(safetyCallback, 250);
+	
+	      var clearableCallbackForGA = function () {
+	        clearTimeout(t);
+	        if (!safetyCallbackCalled) {
+	          hitCallback();
+	        }
+	      };
+	
+	      fieldObject.hitCallback = clearableCallbackForGA;
+	
+	      // Send to GA
+	      this.send(fieldObject);
+	    } else {
+	      // if ga is not defined, return the callback so the application
+	      // continues to work as expected
+	      setTimeout(hitCallback, 0);
+	    }
+	  }
+	};
+	
+	var OutboundLink = __webpack_require__(368);
+	OutboundLink.origTrackLink = OutboundLink.trackLink;
+	OutboundLink.trackLink = ReactGA.outboundLink.bind(ReactGA);
+	ReactGA.OutboundLink = OutboundLink;
+	
+	module.exports = ReactGA;
+
+
+/***/ },
+/* 361 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var mightBeEmail = __webpack_require__(362);
+	var toTitleCase = __webpack_require__(363);
+	var warn = __webpack_require__(365);
+	
+	var _redacted = 'REDACTED (Potential Email Address)';
+	
+	function format(s, titleCase) {
+	  if (mightBeEmail(s)) {
+	    warn('This arg looks like an email address, redacting.');
+	    return _redacted;
+	  }
+	
+	  if (titleCase) {
+	    return toTitleCase(s);
+	  }
+	
+	  return s;
+	}
+	
+	module.exports = format;
+
+
+/***/ },
+/* 362 */
+/***/ function(module, exports) {
+
+	// See if s could be an email address. We don't want to send personal data like email.
+	// https://support.google.com/analytics/answer/2795983?hl=en
+	function mightBeEmail(s) {
+	  // There's no point trying to validate rfc822 fully, just look for ...@...
+	  return (/[^@]+@[^@]+/).test(s);
+	}
+	
+	module.exports = mightBeEmail;
+
+
+/***/ },
+/* 363 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * To Title Case 2.1 - http://individed.com/code/to-title-case/
+	 * Copyright 2008-2013 David Gouch. Licensed under the MIT License.
+	 * https://github.com/gouch/to-title-case
+	 */
+	
+	var trim = __webpack_require__(364);
+	
+	function toTitleCase(s) {
+	  var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
+	  s = trim(s);
+	
+	  return s.replace(/[A-Za-z0-9\u00C0-\u00FF]+[^\s-]*/g, function (match, index, title) {
+	    if (index > 0 &&
+	        index + match.length !== title.length &&
+	        match.search(smallWords) > -1 &&
+	        title.charAt(index - 2) !== ':' &&
+	        (title.charAt(index + match.length) !== '-' || title.charAt(index - 1) === '-') &&
+	        title.charAt(index - 1).search(/[^\s-]/) < 0) {
+	      return match.toLowerCase();
+	    }
+	
+	    if (match.substr(1).search(/[A-Z]|\../) > -1) {
+	      return match;
+	    }
+	
+	    return match.charAt(0).toUpperCase() + match.substr(1);
+	  });
+	}
+	
+	module.exports = toTitleCase;
+
+
+/***/ },
+/* 364 */
+/***/ function(module, exports) {
+
+	// GA strings need to have leading/trailing whitespace trimmed, and not all
+	// browsers have String.prototoype.trim().
+	
+	function trim(s) {
+	  return s.replace(/^\s+|\s+$/g, '');
+	}
+	
+	module.exports = trim;
+
+
+/***/ },
+/* 365 */
+/***/ function(module, exports) {
+
+	function warn(s) {
+	  console.warn('[react-ga]', s);
+	}
+	
+	module.exports = warn;
+
+
+/***/ },
+/* 366 */
+/***/ function(module, exports) {
+
+	function removeLeadingSlash(s) {
+	  if (s.substring(0, 1) === '/') {
+	    s = s.substring(1);
+	  }
+	
+	  return s;
+	}
+	
+	module.exports = removeLeadingSlash;
+
+
+/***/ },
+/* 367 */
+/***/ function(module, exports) {
+
+	function log(s) {
+	  console.info('[react-ga]', s);
+	}
+	
+	module.exports = log;
+
+
+/***/ },
+/* 368 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(1);
+	var assign = __webpack_require__(4);
+	
+	var NEWTAB = '_blank';
+	
+	var OutboundLink = React.createClass({
+	  displayName: 'OutboundLink',
+	  propTypes: {
+	    eventLabel: React.PropTypes.string.isRequired
+	  },
+	  statics: {
+	    trackLink: function () {
+	      console.warn('ga tracking not enabled');
+	    }
+	  },
+	  handleClick: function (e) {
+	    e.preventDefault();
+	    var props = this.props;
+	    var eventMeta = { label: props.eventLabel };
+	    OutboundLink.trackLink(eventMeta, function () {
+	      if (props.target === NEWTAB) {
+	        window.open(props.to, NEWTAB);
+	      } else {
+	        window.location.href = props.to;
+	      }
+	    });
+	
+	    if (props.onClick) {
+	      props.onClick(e);
+	    }
+	  },
+	
+	  render: function () {
+	    var props = assign({}, this.props, {
+	      href: this.props.to,
+	      onClick: this.handleClick
+	    });
+	    delete props.eventLabel;
+	    return React.createElement('a', props);
+	  }
+	});
+	
+	module.exports = OutboundLink;
+
+
+/***/ },
+/* 369 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38993,7 +39741,7 @@
 	exports.default = Feature;
 
 /***/ },
-/* 361 */
+/* 370 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39005,14 +39753,14 @@
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _templateObject = _taggedTemplateLiteral(['\n  //background-image: linear-gradient(to top, #066639 0%, #6FAF9F 100%);\n  background: #FFF;\n  padding: 3rem 0;\n  position: relative;\n'], ['\n  //background-image: linear-gradient(to top, #066639 0%, #6FAF9F 100%);\n  background: #FFF;\n  padding: 3rem 0;\n  position: relative;\n']),
-	    _templateObject2 = _taggedTemplateLiteral(['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  position: absolute;\n  top: -30px;\n  h2 {\n    background: linear-gradient(to right, #FF9800, #F57C00);\n    color: #222;\n    padding: 8px;\n    box-shadow: 0 16px 28px 0 rgba(0, 0, 0, 0.22), 0 25px 55px 0 rgba(0, 0, 0, 0.21);\n  }\n'], ['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  position: absolute;\n  top: -30px;\n  h2 {\n    background: linear-gradient(to right, #FF9800, #F57C00);\n    color: #222;\n    padding: 8px;\n    box-shadow: 0 16px 28px 0 rgba(0, 0, 0, 0.22), 0 25px 55px 0 rgba(0, 0, 0, 0.21);\n  }\n']),
-	    _templateObject3 = _taggedTemplateLiteral(['\n  width: 100%;\n  margin-left: ', ';\n  overflow-x: hidden;\n  transition: all .5s ease;\n  height:  300px;\n  //margin-left: ', '\n'], ['\n  width: 100%;\n  margin-left: ', ';\n  overflow-x: hidden;\n  transition: all .5s ease;\n  height:  300px;\n  //margin-left: ', '\n']),
+	    _templateObject2 = _taggedTemplateLiteral(['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  h2 {\n    font-weight: bold;\n    background: #FFF;\n    color: #222;\n    padding: 32px;\n  }\n'], ['\n  width: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #FFF;\n  h2 {\n    font-weight: bold;\n    background: #FFF;\n    color: #222;\n    padding: 32px;\n  }\n']),
+	    _templateObject3 = _taggedTemplateLiteral(['\n  width: 100%;\n  margin-left: ', ';\n  overflow-x: hidden;\n  transition: all .3s ease;\n  height: 600px;\n  //margin-left: ', '\n'], ['\n  width: 100%;\n  margin-left: ', ';\n  overflow-x: hidden;\n  transition: all .3s ease;\n  height: 600px;\n  //margin-left: ', '\n']),
 	    _templateObject4 = _taggedTemplateLiteral(['\n  position: relative;\n  width: 100%;\n  height: 100%;\n  display: flex;\n  justify-content: space-around;\n  align-items: center;\n  overflow-x: hidden;\n'], ['\n  position: relative;\n  width: 100%;\n  height: 100%;\n  display: flex;\n  justify-content: space-around;\n  align-items: center;\n  overflow-x: hidden;\n']),
-	    _templateObject5 = _taggedTemplateLiteral(['\n  width: ', ';\n  height: auto;\n  //height: ', ';\n  //min-width: ', ';\n  //max-width: 640px;\n  transition: all .3s linear;\n'], ['\n  width: ', ';\n  height: auto;\n  //height: ', ';\n  //min-width: ', ';\n  //max-width: 640px;\n  transition: all .3s linear;\n']),
-	    _templateObject6 = _taggedTemplateLiteral(['\n  display: inline-block;\n  opacity: ', ';\n  width: 50%;\n  transition: all .4s linear;\n'], ['\n  display: inline-block;\n  opacity: ', ';\n  width: 50%;\n  transition: all .4s linear;\n']),
+	    _templateObject5 = _taggedTemplateLiteral(['\n  width: ', ';\n  //height: ', ';\n  //min-width: ', ';\n  transition: all .3s linear;\n'], ['\n  width: ', ';\n  //height: ', ';\n  //min-width: ', ';\n  transition: all .3s linear;\n']),
+	    _templateObject6 = _taggedTemplateLiteral(['\n  margin-top: 48px;\n  opacity: ', ';\n  width: 100%;\n  transition: all .3s linear;\n'], ['\n  margin-top: 48px;\n  opacity: ', ';\n  width: 100%;\n  transition: all .3s linear;\n']),
 	    _templateObject7 = _taggedTemplateLiteral(['\n  display: flex;\n  align-items: center;  \n  justify-content: center;\n  div {\n    width: 480px;\n    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);\n    padding: 8px;\n    img {\n      width: 100%;\n    }\n  }\n'], ['\n  display: flex;\n  align-items: center;  \n  justify-content: center;\n  div {\n    width: 480px;\n    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);\n    padding: 8px;\n    img {\n      width: 100%;\n    }\n  }\n']),
 	    _templateObject8 = _taggedTemplateLiteral(['\n  font-size: 8px;\n  color: #444;\n'], ['\n  font-size: 8px;\n  color: #444;\n']),
-	    _templateObject9 = _taggedTemplateLiteral(['\n  height: auto;\n  padding: 8px;\n  width: 201%;\n  overflow-x: hidden; \n  transition: all .3s linear;\n  margin-left: ', ';\n'], ['\n  height: auto;\n  padding: 8px;\n  width: 201%;\n  overflow-x: hidden; \n  transition: all .3s linear;\n  margin-left: ', ';\n']);
+	    _templateObject9 = _taggedTemplateLiteral(['\n  height: auto;\n  padding: 8px;\n  width: 100%;\n  overflow-x: hidden; \n  transition: all .3s linear;\n  margin-left: ', ';\n'], ['\n  height: auto;\n  padding: 8px;\n  width: 100%;\n  overflow-x: hidden; \n  transition: all .3s linear;\n  margin-left: ', ';\n']);
 	
 	var _react = __webpack_require__(1);
 	
@@ -39025,6 +39773,10 @@
 	var _styledComponents = __webpack_require__(287);
 	
 	var _styledComponents2 = _interopRequireDefault(_styledComponents);
+	
+	var _reactGa = __webpack_require__(360);
+	
+	var _reactGa2 = _interopRequireDefault(_reactGa);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39074,11 +39826,11 @@
 	  if (props.animation === 'left' && props.type === 'left') {
 	    return 0;
 	  } else if (props.animation === 'left' && props.type === 'right') {
-	    return '100%';
+	    return '10%';
 	  } else if (props.animation === 'right' && props.type === 'right') {
 	    return 0;
 	  } else if (props.animation === 'right' && props.type === 'left') {
-	    return '-100%';
+	    return '-10%';
 	  }
 	});
 	
@@ -39090,10 +39842,16 @@
 	
 	    var _this = _possibleConstructorReturn(this, (Trainning.__proto__ || Object.getPrototypeOf(Trainning)).call(this, props));
 	
-	    _this.triggerAnimation = function () {};
-	
 	    _this.selectVideo = function (id) {
-	      _reactDom2.default.findDOMNode(_this.refs['video' + id]).play();
+	      _reactGa2.default.event({
+	        category: 'video',
+	        action: 'play video',
+	        label: 'video' + id
+	      });
+	      setTimeout(function () {
+	        return _reactDom2.default.findDOMNode(_this.refs['video' + id]).play();
+	      }, 300);
+	      _reactDom2.default.findDOMNode(_this.refs['video' + _this.state.active]).pause();
 	      _this.setState({ active: id,
 	        animation: id === 1 ? 'left' : 'right'
 	      });
@@ -39121,9 +39879,9 @@
 	    key: 'componentDidUpdate',
 	    value: function componentDidUpdate(preState, preProps) {
 	      if (preState.active !== this.state.active) {
-	        this.playOtherVideo();
+	        //this.playOtherVideo()
 	      }
-	      if (scrollY > this.state.top) {
+	      if (scrollY + 100 > this.state.top && this.state.top !== preState.active) {
 	        _reactDom2.default.findDOMNode(this.refs['video' + this.state.active]).play();
 	      } else {
 	        _reactDom2.default.findDOMNode(this.refs['video' + this.state.active]).pause();
@@ -39158,7 +39916,7 @@
 	          _react2.default.createElement(
 	            'h2',
 	            null,
-	            'Adverarial DRL'
+	            'Video Examples'
 	          )
 	        ),
 	        _react2.default.createElement(
@@ -39182,6 +39940,24 @@
 	                  }
 	                },
 	                _react2.default.createElement('source', { src: VideoSrc1 })
+	              ),
+	              _react2.default.createElement(
+	                Content,
+	                { type: 'left', animation: animation },
+	                _react2.default.createElement(
+	                  Figure,
+	                  null,
+	                  _react2.default.createElement(
+	                    'div',
+	                    null,
+	                    _react2.default.createElement('img', { src: PA_FIGURE }),
+	                    _react2.default.createElement(
+	                      FigureDescription,
+	                      null,
+	                      'Figure 1: Illustration of parsimonious attack on Pong. Bottom panel shows the computed criticalness c(st) (y-axis) which reflects how critical it is to take the best action at step t (x-axis). Our method attacks when c(st) > C(\u0393) (red-dash line). s25 and s84 are examples of low and high criticalness, respectively. When a small perturbation \u03B4 is added to s84, the agent changes its action from up to down and eventually misses the ball.'
+	                    )
+	                  )
+	                )
 	              )
 	            ),
 	            _react2.default.createElement(
@@ -39199,45 +39975,23 @@
 	                  }
 	                },
 	                _react2.default.createElement('source', { src: VideoSrc1 })
-	              )
-	            )
-	          )
-	        ),
-	        _react2.default.createElement(
-	          ContentContainer,
-	          { type: 'left', animation: animation },
-	          _react2.default.createElement(
-	            Content,
-	            { type: 'left', animation: animation },
-	            _react2.default.createElement(
-	              Figure,
-	              null,
+	              ),
 	              _react2.default.createElement(
-	                'div',
-	                null,
-	                _react2.default.createElement('img', { src: PA_FIGURE }),
+	                Content,
+	                { type: 'right', animation: animation },
 	                _react2.default.createElement(
-	                  FigureDescription,
+	                  Figure,
 	                  null,
-	                  'Figure 1: Illustration of parsimonious attack on Pong. Bottom panel shows the computed criticalness c(st) (y-axis) which reflects how critical it is to take the best action at step t (x-axis). Our method attacks when c(st) > C(\u0393) (red-dash line). s25 and s84 are examples of low and high criticalness, respectively. When a small perturbation \u03B4 is added to s84, the agent changes its action from up to down and eventually misses the ball.'
-	                )
-	              )
-	            )
-	          ),
-	          _react2.default.createElement(
-	            Content,
-	            { type: 'right', animation: animation },
-	            _react2.default.createElement(
-	              Figure,
-	              null,
-	              _react2.default.createElement(
-	                'div',
-	                null,
-	                _react2.default.createElement('img', { src: PA_FIGURE }),
-	                _react2.default.createElement(
-	                  FigureDescription,
-	                  null,
-	                  'Figure 1: Illustration of parsimonious attack on Pong. Bottom panel shows the computed criticalness c(st) (y-axis) which reflects how critical it is to take the best action at step t (x-axis). Our method attacks when c(st) > C(\u0393) (red-dash line). s25 and s84 are examples of low and high criticalness, respectively. When a small perturbation \u03B4 is added to s84, the agent changes its action from up to down and eventually misses the ball.'
+	                  _react2.default.createElement(
+	                    'div',
+	                    null,
+	                    _react2.default.createElement('img', { src: PA_FIGURE }),
+	                    _react2.default.createElement(
+	                      FigureDescription,
+	                      null,
+	                      'Figure 1: Illustration of parsimonious attack on Pong. Bottom panel shows the computed criticalness c(st) (y-axis) which reflects how critical it is to take the best action at step t (x-axis). Our method attacks when c(st) > C(\u0393) (red-dash line). s25 and s84 are examples of low and high criticalness, respectively. When a small perturbation \u03B4 is added to s84, the agent changes its action from up to down and eventually misses the ball.'
+	                    )
+	                  )
 	                )
 	              )
 	            )
@@ -39253,7 +40007,7 @@
 	exports.default = Trainning;
 
 /***/ },
-/* 362 */
+/* 371 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39314,7 +40068,7 @@
 	exports.default = Banner;
 
 /***/ },
-/* 363 */
+/* 372 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39402,7 +40156,7 @@
 	exports.default = Footer;
 
 /***/ },
-/* 364 */
+/* 373 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39419,7 +40173,7 @@
 	
 	var _reactRouter = __webpack_require__(216);
 	
-	var _actions = __webpack_require__(365);
+	var _actions = __webpack_require__(374);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39501,7 +40255,7 @@
 	exports.default = (0, _reactRedux.connect)(mapStateToProps, { getList: _actions.getList, clientRender: _actions.clientRender })(ParksContainer);
 
 /***/ },
-/* 365 */
+/* 374 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39517,11 +40271,11 @@
 	
 	var _reactRouter = __webpack_require__(216);
 	
-	var _superagent = __webpack_require__(366);
+	var _superagent = __webpack_require__(375);
 	
 	var _superagent2 = _interopRequireDefault(_superagent);
 	
-	var _config = __webpack_require__(371);
+	var _config = __webpack_require__(380);
 	
 	var _config2 = _interopRequireDefault(_config);
 	
@@ -39562,7 +40316,7 @@
 	};
 
 /***/ },
-/* 366 */
+/* 375 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -39579,9 +40333,9 @@
 	  root = this;
 	}
 	
-	var Emitter = __webpack_require__(367);
-	var requestBase = __webpack_require__(368);
-	var isObject = __webpack_require__(369);
+	var Emitter = __webpack_require__(376);
+	var requestBase = __webpack_require__(377);
+	var isObject = __webpack_require__(378);
 	
 	/**
 	 * Noop.
@@ -39593,7 +40347,7 @@
 	 * Expose `request`.
 	 */
 	
-	var request = module.exports = __webpack_require__(370).bind(null, Request);
+	var request = module.exports = __webpack_require__(379).bind(null, Request);
 	
 	/**
 	 * Determine XHR.
@@ -40544,7 +41298,7 @@
 
 
 /***/ },
-/* 367 */
+/* 376 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -40713,13 +41467,13 @@
 
 
 /***/ },
-/* 368 */
+/* 377 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module of mixed-in functions shared between node and client code
 	 */
-	var isObject = __webpack_require__(369);
+	var isObject = __webpack_require__(378);
 	
 	/**
 	 * Clear previous timeout.
@@ -41091,7 +41845,7 @@
 
 
 /***/ },
-/* 369 */
+/* 378 */
 /***/ function(module, exports) {
 
 	/**
@@ -41110,7 +41864,7 @@
 
 
 /***/ },
-/* 370 */
+/* 379 */
 /***/ function(module, exports) {
 
 	// The node and browser modules expose versions of this with the
@@ -41148,7 +41902,7 @@
 
 
 /***/ },
-/* 371 */
+/* 380 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
