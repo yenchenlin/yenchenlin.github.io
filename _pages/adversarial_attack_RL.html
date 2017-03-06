@@ -100,7 +100,7 @@ $(document).ready(function(){
                 <td><img class="header-img" src = "header-im3.jpg"></td>
                 <td><img class="header-img" src = "header-im4.jpg"></td>
 				-->
-
+        <!-- <button id="video-toggle">Toggle</button> -->
 				<td><video id="header-vid1" class="header-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="../adversarial_attack_RL/ChopperCommand_cover.png" poster="../adversarial_attack_RL/ChopperCommand_cover.png">
 				  <source src="../adversarial_attack_RL/ChopperCommand.mp4" type="video/mp4">
 				</video></td>
@@ -124,6 +124,8 @@ $(document).ready(function(){
           </center>
         </td>
       </tr>
+
+
 
 
       <tr>
@@ -231,74 +233,50 @@ $(document).ready(function(){
         </tr>
 		  </tbody></table>
 
-          </td></tr><tr>
-            <td>
-              <br>
-              <br>
-              <center>
-              <!--<iframe width="800" height="600" src="http://www.youtube.com/v/NNlE_hzqdss&vq=hd720" frameborder="0" allowfullscreen></iframe>-->
-              <!--Video coming soon!-->
-              </center>
-
-              <br>
-
-              <!-- <div style = "width:800px"><b>Results from selected -->
-              <!-- scenes</b>.  This video shows virtual 3D boxes that have -->
-              <!-- been camouflaged using our algorithms. These algorithms -->
-              <!-- produce patterns that we "paint" onto the boxes, making -->
-              <!-- them hard to see from many viewpoints.  We show each box -->
-              <!-- from the viewpoints that it has been camouflaged -->
-              <!-- from. For each scene, we show the result from the -->
-              <!-- algorithm with the best score (as measured by confusion -->
-              <!-- rate).  </div> -->
-
-
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-
-              <!-- <br><b>Bibtex</b> -->
-              <font size="3">
-
-</font></td></tr></tbody></table>
+          </td></tr>
+</tbody></table>
     <!-- <iframe width="1920" height="1080" src="https://www.youtube.com/embed/JpZUZ9ZDECE" frameborder="0" allowfullscreen></iframe> -->
-<center>
-<iframe width="853" height="480" src="https://www.youtube.com/embed/gCMNRnWc-s0" frameborder="0" allowfullscreen></iframe>
-</br></br>
-This video shows typical examples of our two proposed adversarial attacks.
 
+</br></br>
+
+<center>
+  <span style="font-size:150%">Video Overview</span>
+  </br></br>
+
+  <iframe width="853" height="480" src="https://www.youtube.com/embed/gCMNRnWc-s0" frameborder="0" allowfullscreen></iframe>
 </center>
 
-<!-- <div align = "center" class = "hits"> -->
-<!--   <br> -->
-<!--   <img src = "dataset-fig.png"> -->
-<!--   <br> -->
-<!--   <p style = "width:700px"> -->
-<!--    Images from the Greatest Hits: Volume 1 dataset. What sound do these objects made when you hit them with a drumstick? -->
-<!--   Download the full videos <a href = -->
-<!--   "http://monday.csail.mit.edu/vis/vis-data.zip">here</a> (40GB). -->
-<!-- <\!-- </div> -\-> -->
-<!--             <div class = "item"> -->
-<!-- <\!--               <video onmouseover = "this.controls = true;" onmouseout = "this.controls = false;" data-poster="http://monday.csail.mit.edu/vis/thumbs/2015-10-03-14-17-02-347_thumb.jpg" class = "hit-video" preload = "none"> -\-> -->
-<!-- <\!-- <\\!--				        <source src="http://monday.csail.mit.edu/vis/vis-data/2015-10-03-14-17-02-347_denoised_thumb.mp4" type="video/mp4">-\\-> -\-> -->
-<!-- <\!-- 			        </video> -\-> -->
-<!--             </div> -->
-
+</br></br>
 
 <center>
+  <span style="font-size:150%">Strategically-timed Attack</span>
+  </br></br>
 
-          <br>
-<!--
-              <br><br>
-              <b>Press:</b>&nbsp;
-              <a href="https://qz.com/712044/mit-researchers-built-an-ai-that-predicts-what-the-world-sounds-like/">Quartz</a>,&nbsp;
-              <a href="https://www.washingtonpost.com/news/innovations/wp/2016/06/13/this-computer-is-selecting-sound-effects-for-silent-videos-that-seem-so-real-humans-cant-tell-theyre-fake/">Washington Post</a>,&nbsp;
-              <a href="https://www.bostonglobe.com/business/2016/06/19/mit-lab-uses-artificial-intelligence-let-computer-add-sound-effects-videos/MrHTqxTjeiYfP3RlQsDr0M/story.html">Boston Globe</a>,&nbsp;
-              <a href="http://www.csail.mit.edu/visually_indicated_sounds">MIT News</a>.
--->
+  <td><video id="ST-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
+    <source src="../adversarial_attack_RL/ST/Pong.mp4" type="video/mp4">
+  </video></td>
+  <td><video id="ST-vid2" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
+    <source src="../adversarial_attack_RL/ST/ChopperCommand.mp4" type="video/mp4">
+  </video></td>
+</center>
 
+</br></br>
+
+<center>
+  <span style="font-size:150%">Enchanting Attack</span>
+  </br></br>
+  <td><video id="enchanting-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
+    <source src="../adversarial_attack_RL/Enchanting/Qbert.mp4" type="video/mp4">
+  </video></td>
+  <td><video id="enchanting-vid2" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
+    <source src="../adversarial_attack_RL/Enchanting/MsPacman.mp4" type="video/mp4">
+  </video></td>
+</center>
+
+</br></br>
+<center>
+More examples coming soon!
+</center>
 <!--
 </center>
 <br>
@@ -343,6 +321,53 @@ This video shows typical examples of our two proposed adversarial attacks.
 //nav: 0,
 //    });
 //});
+
+// Frank edition started.
+
+// 0 for normal
+// 1 for attacked
+/*
+let Toggle = 0;
+$('#video-toggle').click(
+  () => {
+    if (Toggle == 0 ){
+      changeSource('header-vid1', '../adversarial_attack_RL/Normal/ChopperCommand.mp4')
+      changeSource('header-vid2', '../adversarial_attack_RL/Normal/Pong.mp4')
+      changeSource('header-vid3', '../adversarial_attack_RL/Normal/MsPacman.mp4')
+      changeSource('header-vid4', '../adversarial_attack_RL/Normal/Qbert.mp4')
+      changeSource('header-vid5', '../adversarial_attack_RL/Normal/Seaquest.mp4')
+    } else {
+      // put original source
+    }
+    Toggle = !Toggle
+  }
+)
+*/
+/*
+ * document.getElementById('header-vid1') => will get the component of video #1
+ * document.createElement('source') => will create a new source component with new src
+ * append to video #1 as child
+ * reload the source
+ *
+ * if we want to change it back to normal, just change above code with original source
+ */
+const changeSource = (videoId, newSrc) => {
+  const video = document.getElementById(videoId)
+  // Remove normal agent source
+  video.getElementsByTagName('source')[0].remove()
+
+  // Create agent attacked source
+  const newVideo = document.createElement('source')
+  newVideo.setAttribute('src', newSrc)
+
+  // Append to video
+  video.appendChild(newVideo)
+
+  // Reload the source
+  video.load()
+}
+
+//Frank edition end.
 </script>
 
 

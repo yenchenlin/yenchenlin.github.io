@@ -15,6 +15,14 @@
 		-moz-border-radius: 10px ;
 		-webkit-border-radius: 10px ;
 	}
+	
+	video.example-vid {
+		height: 320px;
+		border: 1px solid black;
+		border-radius: 10px ;
+		-moz-border-radius: 10px ;
+		-webkit-border-radius: 10px ;
+	}
 
 	video.hit-video {
 		//height: 240px;
