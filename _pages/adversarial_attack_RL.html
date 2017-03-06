@@ -4,7 +4,6 @@ title: GSoC
 permalink: /adversarial_attack_RL/
 ---
 <!DOCTYPE html>
-<!-- saved from url=(0025)http://vis.csail.mit.edu/ -->
 <html class="gr__vis_csail_mit_edu"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
   <script async="" src="../adversarial_attack_RL/analytics.js"></script><script type="text/javascript" id="www-widgetapi-script" src="../adversarial_attack_RL/www-widgetapi.js" async=""></script><script src="../adversarial_attack_RL/jsapi" type="text/javascript"></script>
   <script src="../adversarial_attack_RL/iframe_api"></script>
@@ -100,7 +99,6 @@ $(document).ready(function(){
                 <td><img class="header-img" src = "header-im3.jpg"></td>
                 <td><img class="header-img" src = "header-im4.jpg"></td>
 				-->
-        <!-- <button id="video-toggle">Toggle</button> -->
 				<td><video id="header-vid1" class="header-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="../adversarial_attack_RL/ChopperCommand_cover.png" poster="../adversarial_attack_RL/ChopperCommand_cover.png">
 				  <source src="../adversarial_attack_RL/ChopperCommand.mp4" type="video/mp4">
 				</video></td>
@@ -117,16 +115,15 @@ $(document).ready(function(){
           <source src="../adversarial_attack_RL/Seaquest.mp4" type="video/mp4">
         </video></td>
 
-          </tr>
-			  <tr><td colspan="5" style="font-size:120%"><center><i>Click each image to see how <b>attacked</b> deep reinforcement learning agents act in Atari 2600.</i></center></td><td></td></tr>
+        </tr>
+			  <tr><td colspan="5" style="font-size:120%"><center><i>Click each image to see how <b>attacked</b> deep reinforcement learning agents act in Atari 2600.</i></center></td>
+        <td></td>
+        </tr>
             </tbody></table>
             <!-- Three views of a camouflaged cube.  -->
           </center>
         </td>
-      </tr>
-
-
-
+        </tr>
 
       <tr>
         <td align="center">
@@ -247,9 +244,14 @@ $(document).ready(function(){
 </center>
 
 </br></br>
-
 <center>
-  <span style="font-size:150%">Strategically-timed Attack</span>
+<span style="font-size:150%">Examples</span>
+<tr><td colspan="5" style="font-size:120%"><center>(Click each image to see how our tactics work.)</center></td>
+</center>
+
+</br>
+<center>
+  <span style="font-size:120%">Strategically-timed Attack</span>
   </br></br>
 
   <td><video id="ST-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
@@ -263,7 +265,7 @@ $(document).ready(function(){
 </br></br>
 
 <center>
-  <span style="font-size:150%">Enchanting Attack</span>
+  <span style="font-size:120%">Enchanting Attack</span>
   </br></br>
   <td><video id="enchanting-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="" poster="">
     <source src="../adversarial_attack_RL/Enchanting/Qbert.mp4" type="video/mp4">
@@ -326,23 +328,23 @@ More examples coming soon!
 
 // 0 for normal
 // 1 for attacked
-/*
-let Toggle = 0;
-$('#video-toggle').click(
-  () => {
-    if (Toggle == 0 ){
-      changeSource('header-vid1', '../adversarial_attack_RL/Normal/ChopperCommand.mp4')
-      changeSource('header-vid2', '../adversarial_attack_RL/Normal/Pong.mp4')
-      changeSource('header-vid3', '../adversarial_attack_RL/Normal/MsPacman.mp4')
-      changeSource('header-vid4', '../adversarial_attack_RL/Normal/Qbert.mp4')
-      changeSource('header-vid5', '../adversarial_attack_RL/Normal/Seaquest.mp4')
+
+$(".show-more a").on("click", function() {
+    var $this = $(this);
+    var $content = $this.parent().prev("div.content");
+    var linkText = $this.text().toUpperCase();
+
+    if(linkText === "SHOW MORE"){
+        linkText = "Show less";
+        $content.switchClass("hideContent", "showContent", 400);
     } else {
-      // put original source
-    }
-    Toggle = !Toggle
-  }
-)
-*/
+        linkText = "Show more";
+        $content.switchClass("showContent", "hideContent", 400);
+    };
+
+    $this.text(linkText);
+});
+
 /*
  * document.getElementById('header-vid1') => will get the component of video #1
  * document.createElement('source') => will create a new source component with new src
