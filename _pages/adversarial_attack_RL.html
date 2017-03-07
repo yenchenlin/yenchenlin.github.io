@@ -160,16 +160,15 @@ permalink: /adversarial_attack_RL/
 
                     </tr>
 
-                    <tr>
-                        <td>
-                                <button id="video-toggle">Show Normal</button>
-                        </td>
-                    </tr>
-
                     </tbody>
                 </table>
                 <!-- Three views of a camouflaged cube.  -->
             </center>
+            <tr>
+                <td>
+                    <center><button id="video-toggle" class="button button5">See <b>normal</b> agents</button></center>
+                </td>
+            </tr>
         </td>
     </tr>
 
@@ -416,10 +415,12 @@ permalink: /adversarial_attack_RL/
             function () {
                 if (Toggle == 0) {
                     openNormalVideo()
+                    $(this).html("Hide <b>normal</b> agents")
                 }
                 else {
                     // put original source
                     $('#video-table-body > tr')[$('#video-table-body > tr').length-1].remove()
+                    $(this).html("See <b>normal</b> agents")
                 }
                 Toggle = !Toggle
             }
