@@ -91,7 +91,9 @@ $(document).ready(function(){
           <br><br>
           <center>
             <table>
-              <tbody><tr>
+              <tbody id="video-table-body">
+               
+                <tr>
                 <!-- <img src = "half-teaser.jpg" height = "300px"> -->
                 <!--      <img src = "pipeline.png" height = "300px"> -->
                 <!--
@@ -100,7 +102,6 @@ $(document).ready(function(){
                 <td><img class="header-img" src = "header-im3.jpg"></td>
                 <td><img class="header-img" src = "header-im4.jpg"></td>
 				-->
-        <!-- <button id="video-toggle">Toggle</button> -->
 				<td><video id="header-vid1" class="header-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="../adversarial_attack_RL/ChopperCommand_cover.png" poster="../adversarial_attack_RL/ChopperCommand_cover.png">
 				  <source src="../adversarial_attack_RL/ChopperCommand.mp4" type="video/mp4">
 				</video></td>
@@ -116,7 +117,7 @@ $(document).ready(function(){
         <td><video id="header-vid5" class="header-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();" data-poster="../adversarial_attack_RL/Seaquest_cover.png" poster="../adversarial_attack_RL/Seaquest_cover.png">
           <source src="../adversarial_attack_RL/Seaquest.mp4" type="video/mp4">
         </video></td>
-
+                 <button id="video-toggle">Show Normal</button>
           </tr>
 			  <tr><td colspan="5" style="font-size:120%"><center><i>Click each image to see how <b>attacked</b> deep reinforcement learning agents act in Atari 2600.</i></center></td><td></td></tr>
             </tbody></table>
@@ -199,7 +200,7 @@ $(document).ready(function(){
 						  <!--     <a class="vert-cent" href = "http://arxiv.org/pdf/1512.08512">Download<br>Paper</a></td> -->
 					    <!-- </tr> -->
               <tbody><tr><td align="center">
-						      <a href="https://drive.google.com/open?id=0B50cbskLVq-eUFZ0MlRzdzZ4ZDg">
+						      <a id="paper-link" href="https://drive.google.com/open?id=0B50cbskLVq-eUFZ0MlRzdzZ4ZDg">
                     <img style="height:200px" src="../adversarial_attack_RL/paper_thumb.png">
                   </a>
                 </td>
@@ -322,49 +323,75 @@ More examples coming soon!
 //    });
 //});
 
-// Frank edition started.
 
-// 0 for normal
-// 1 for attacked
-/*
 let Toggle = 0;
 $('#video-toggle').click(
   () => {
     if (Toggle == 0 ){
-      changeSource('header-vid1', '../adversarial_attack_RL/Normal/ChopperCommand.mp4')
-      changeSource('header-vid2', '../adversarial_attack_RL/Normal/Pong.mp4')
-      changeSource('header-vid3', '../adversarial_attack_RL/Normal/MsPacman.mp4')
-      changeSource('header-vid4', '../adversarial_attack_RL/Normal/Qbert.mp4')
-      changeSource('header-vid5', '../adversarial_attack_RL/Normal/Seaquest.mp4')
+      openNormalVideo()
     } else {
       // put original source
+      $('#video-table-body > tr')[2].remove()
     }
     Toggle = !Toggle
   }
 )
-*/
-/*
- * document.getElementById('header-vid1') => will get the component of video #1
- * document.createElement('source') => will create a new source component with new src
- * append to video #1 as child
- * reload the source
- *
- * if we want to change it back to normal, just change above code with original source
- */
-const changeSource = (videoId, newSrc) => {
-  const video = document.getElementById(videoId)
-  // Remove normal agent source
-  video.getElementsByTagName('source')[0].remove()
 
+$('#video-toggle').click(
+  () => {
+    ga('send', 'click', 'open normal' )
+  }
+)
+
+$('#paper-link').click(
+   () => {
+      ga('send', 'click', 'open paper')
+   }
+)
+
+$('.header-vid').click(
+  (e) => {
+    ga('send', 'click', 'video', e.target.id)
+  }
+)
+
+const normalVideoList = [
+                         ['../adversarial_attack_RL/ChopperCommand_cover.png', '../adversarial_attack_RL/ChopperCommand.mp4' ],
+                         ['../adversarial_attack_RL/ChopperCommand_cover.png', '../adversarial_attack_RL/ChopperCommand.mp4' ],
+                         ['../adversarial_attack_RL/ChopperCommand_cover.png', '../adversarial_attack_RL/ChopperCommand.mp4' ],
+                         ['../adversarial_attack_RL/ChopperCommand_cover.png', '../adversarial_attack_RL/ChopperCommand.mp4' ],
+                         ['../adversarial_attack_RL/ChopperCommand_cover.png', '../adversarial_attack_RL/ChopperCommand.mp4' ]
+                         
+                         ]
+
+const openNormalVideo = () => {
   // Create agent attacked source
-  const newVideo = document.createElement('source')
-  newVideo.setAttribute('src', newSrc)
+  const newTr = document.createElement('tr')
 
-  // Append to video
-  video.appendChild(newVideo)
-
-  // Reload the source
-  video.load()
+  normalVideoList.forEach(
+    (item ,key) => {
+      const newTd = document.createElement('td')
+      const newVideo = document.createElement('video')
+      const newSource = document.createElement('source')
+      newSource.setAttribute('src', item[1])
+      newVideo.setAttribute('id', `header-vid${key+5}`)
+      newVideo.setAttribute('class', 'header-vid lazy-hidden')
+      newVideo.setAttribute('onclick', 'this.paused ? this.play() : this.pause();')
+      newVideo.setAttribute('poster', item[0])
+      newVideo.setAttribute('data-poster', item[0])
+      newVideo.appendChild(newSource)
+      newTd.appendChild(newVideo)
+      newTr.append(newTd)
+      newVideo.load()
+    } 
+  )
+  document.getElementById('video-table-body').appendChild(newTr)
+  $('.header-vid').click(
+        (e) => {
+            console.log(e.target.id)
+            ga('send', 'click', 'video', e.target.id)
+        }
+  )
 }
 
 //Frank edition end.
@@ -378,9 +405,9 @@ const changeSource = (videoId, newSrc) => {
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-49094959-1', 'andrewowens.org');
+  ga('create', 'UA-92164863-1', 'auto');
   ga('send', 'pageview');
 
 
