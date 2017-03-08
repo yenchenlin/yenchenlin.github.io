@@ -323,7 +323,7 @@ permalink: /adversarial_attack_RL/
 
 </br>
 <center>
-    <span style="font-size:120%">Strategically-timed Attack</span>
+    <span style="font-size:120%"><b>Strategically-timed Attack</b></span>
     </br></br>
 
     <td>
@@ -343,7 +343,7 @@ permalink: /adversarial_attack_RL/
 </br></br>
 
 <center>
-    <span style="font-size:120%">Enchanting Attack</span>
+    <span style="font-size:120%"><b>Enchanting Attack</b></span>
     </br></br>
     <td>
         <video id="enchanting-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();"
@@ -359,10 +359,24 @@ permalink: /adversarial_attack_RL/
     </td>
 </center>
 
-</br></br>
+</br>
 <center>
     More examples coming soon!
 </center>
+
+</br></br>
+<center>
+    <span style="font-size:150%">More Information</span>
+    </br></br>
+    <li display="inline-block" text-align="left">
+
+    <a href="https://openai.com/blog/adversarial-example-research/" style="font-size:120%">Attacking Machine Learning with Adversarial Examples</a></li> by Ian Goodfellow et al.
+    </br>
+    </br>
+    <li><a href="https://github.com/yenchenlin/awesome-adversarial-machine-learning" style="font-size:120%">awesome-adversarial-machine-learning</a></li> by Yen-Chen Lin
+
+</center>
+
 <!--
 </center>
 <br>
@@ -415,11 +429,11 @@ permalink: /adversarial_attack_RL/
      a.src = g;
      m.parentNode.insertBefore(a, m)
      })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
-     
+
      ga('create', 'UA-92164863-1', 'auto');
      ga('send', 'pageview');
-     
-     
+
+
     </script>
 
 <script>
@@ -494,7 +508,7 @@ permalink: /adversarial_attack_RL/
         const btext = document.createElement('b')
         btext.appendChild(document.createTextNode('normal '))
         const text2 = document.createTextNode('deep reinforcement learning agents act in Atari 2600.')
-        
+
         newDescriptionText.appendChild(text1)
         newDescriptionText.appendChild(btext)
         newDescriptionText.appendChild(text2)
@@ -503,7 +517,7 @@ permalink: /adversarial_attack_RL/
         newDescriptionCenter.appendChild(newDescriptionText)
         newDescriptionTd.appendChild(newDescriptionCenter)
         newDescriptionTr.appendChild(newDescriptionTd)
-        
+
         document.getElementById('video-table-body').appendChild(newTr)
         document.getElementById('video-table-body').appendChild(newDescriptionTr)
         $('.header-vid').click(
