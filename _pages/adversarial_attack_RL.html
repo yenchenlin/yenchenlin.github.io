@@ -445,6 +445,7 @@ permalink: /adversarial_attack_RL/
                 else {
                     // put original source
                     $('#video-table-body > tr')[$('#video-table-body > tr').length-1].remove()
+                    $('#video-table-body > tr')[$('#video-table-body > tr').length-1].remove()
                     $(this).html("See <b>normal</b> agents")
                 }
                 Toggle = !Toggle
@@ -469,6 +470,7 @@ permalink: /adversarial_attack_RL/
                     const newTd = document.createElement('td')
                     const newVideo = document.createElement('video')
                     const newSource = document.createElement('source')
+                    newTd.setAttribute('style','padding-top: 16px')
                     newSource.setAttribute('src', item[1])
                     newVideo.setAttribute('id', 'header-vid' + (key + 6).toString())
                     newVideo.setAttribute('class', 'header-vid lazy-hidden')
@@ -481,7 +483,29 @@ permalink: /adversarial_attack_RL/
                     newVideo.load()
                 }
         )
+        const newDescriptionTr = document.createElement('tr')
+        const newDescriptionTd = document.createElement('td')
+        newDescriptionTd.setAttribute('colspan', '5')
+        newDescriptionTd.setAttribute('style', 'font-size: 120%')
+
+        const newDescriptionCenter = document.createElement('center')
+        const newDescriptionText = document.createElement('i')
+        const text1 = document.createTextNode('Click each image to see how ')
+        const btext = document.createElement('b')
+        btext.appendChild(document.createTextNode('normal '))
+        const text2 = document.createTextNode('deep reinforcement learning agents act in Atari 2600.')
+        
+        newDescriptionText.appendChild(text1)
+        newDescriptionText.appendChild(btext)
+        newDescriptionText.appendChild(text2)
+
+
+        newDescriptionCenter.appendChild(newDescriptionText)
+        newDescriptionTd.appendChild(newDescriptionCenter)
+        newDescriptionTr.appendChild(newDescriptionTd)
+        
         document.getElementById('video-table-body').appendChild(newTr)
+        document.getElementById('video-table-body').appendChild(newDescriptionTr)
         $('.header-vid').click(
                 function (e) {
                     ga('send', 'event','click', 'video', e.target.id)
