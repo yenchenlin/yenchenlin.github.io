@@ -7,6 +7,14 @@ permalink: /adversarial_attack_RL/
 <html class="gr__vis_csail_mit_edu">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <meta name="description" content="We introduce two tactics to attack agents trained by deep reinforcement learning algorithms using adversarial examples" >
+    <meta name="og:url" content="http://yclin.me/adversarial_attack_RL/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Tactics of Adversarial Attack on
+            Deep Reinforcement Learning Agents">
+    <meta name="og:site_name" content="">
+    <meta name="og:description" content="We introduce two tactics to attack agents trained by deep reinforcement learning algorithms using adversarial examples">
+    <meta name="og:image" content="../adversarial_attack_RL/paper_thumb.png">
     <script async="" src="../adversarial_attack_RL/analytics.js"></script>
     <script type="text/javascript" id="www-widgetapi-script" src="../adversarial_attack_RL/www-widgetapi.js"
             async=""></script>
@@ -395,7 +403,24 @@ permalink: /adversarial_attack_RL/
     });
 </script>
 <!-- End sliders -->
-
+<script>
+    (function (i, s, o, g, r, a, m) {
+     i['GoogleAnalyticsObject'] = r;
+     i[r] = i[r] || function () {
+     (i[r].q = i[r].q || []).push(arguments)
+     }, i[r].l = 1 * new Date();
+     a = s.createElement(o),
+     m = s.getElementsByTagName(o)[0];
+     a.async = 1;
+     a.src = g;
+     m.parentNode.insertBefore(a, m)
+     })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+     
+     ga('create', 'UA-92164863-1', 'auto');
+     ga('send', 'pageview');
+     
+     
+    </script>
 
 <script>
     //$(document).ready(function() {
@@ -459,68 +484,48 @@ permalink: /adversarial_attack_RL/
         document.getElementById('video-table-body').appendChild(newTr)
         $('.header-vid').click(
                 function (e) {
-                    ga('send', 'click', 'video', e.target.id)
+                    ga('send', 'event','click', 'video', e.target.id)
                 }
         )
     }
 
     $('#video-toggle').click(
             function () {
-                ga('send', 'click', 'open normal')
+                ga('send','event', 'click', 'open normal')
             }
     )
 
     $('.example-vid').click(
             function(e) {
-                ga('send', 'click', 'example-video', e.target.id)
+                ga('send','event', 'click', 'example-video', e.target.id)
             }
     )
 
     $('#paper-link').click(
             function () {
-                ga('send', 'click', 'open paper')
+                ga('send','event', 'click', 'open paper')
             }
     )
     $('#download-paper').click(
             function () {
-                ga('send', 'click', 'open paper')
+                ga('send', 'event','click', 'open paper')
             }
     )
 
     $('.header-vid').click(
             function (e) {
-                ga('send', 'click', 'video', e.target.id)
+                ga('send', 'event','click', 'video', e.target.id)
             }
     )
 
     $('.author').click(
             function(e) {
-                console.log(e.target.href)
-                ga('send', 'click', 'author', e.target.href)
+                ga('send', 'event', 'click', 'author', e.target.href)
             }
     )
 
 
     //Frank edition end.
-</script>
-
-<script>
-    (function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r;
-        i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
-        a = s.createElement(o),
-                m = s.getElementsByTagName(o)[0];
-        a.async = 1;
-        a.src = g;
-        m.parentNode.insertBefore(a, m)
-    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
-
-    ga('create', 'UA-92164863-1', 'auto');
-    ga('send', 'pageview');
-
-
 </script>
 
 
