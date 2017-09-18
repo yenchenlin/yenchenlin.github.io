@@ -1,7 +1,7 @@
 ---
 layout: null
 title: GSoC
-permalink: /detect_attack_RL/
+permalink: /RL_attack_detection/
 ---
 <!DOCTYPE html>
 <html class="gr__vis_csail_mit_edu">
@@ -71,12 +71,11 @@ permalink: /detect_attack_RL/
             justify-content: space-between;
             aling-items: center;
           ">
-                <img src="../adversarial_attack_RL/nthu_logo.png" height="100">
+                <img src="../detect_attack_RL/vt_logo.png" height="90">
                 <center>
-                    <span style="font-size:42px">Tactics of Adversarial Attack on</br>
-                        Deep Reinforcement Learning Agents</span>
+                    <span style="font-size:38px">Detecting Adversarial Attacks on <br> Neural Network Policies with Visual Foresight</span>
                 </center>
-                <img src="../adversarial_attack_RL/nvidia_logo.png" height="100">
+                <img src="../detect_attack_RL/nvidia_logo.png" height="90">
             </div>
         </td>
     </tr>
@@ -86,17 +85,11 @@ permalink: /detect_attack_RL/
             <br>
           <span style="font-size:130%">
           <a class="author" target="_blank" href="http://yclin.me"> Yen-Chen Lin </a> &nbsp; &nbsp;
-          <a class="author" target="_blank" href=""> Zhang-Wei Hong </a> &nbsp; &nbsp;
-          <a class="author" target="_blank" href="https://andrewliao11.github.io/"> Yuan-Hong Liao </a> &nbsp; &nbsp;
-          <a class="author" target="_blank" href=""> Meng-Li Shi </a> &nbsp; &nbsp;
           <a class="author" target="_blank" href="http://mingyuliu.net/"> Ming-Yu Liu </a> &nbsp; &nbsp;
           <a class="author" target="_blank" href="http://aliensunmin.github.io/"> Min Sun </a> &nbsp; &nbsp;
+          <a class="author" target="_blank" href="https://filebox.ece.vt.edu/~jbhuang/"> Jia-Bin Huang </a> &nbsp; &nbsp;
           <br>
           <br>
-          <div>
-            <span style="font-size:130%; vertical-align:middle;">IJCAI 2017</span> &nbsp;
-            <img style="vertical-align:middle" src="../adversarial_attack_RL/ijcai2017.png" height="40">
-          </div>
           </span>
         </td>
     </tr>
@@ -194,8 +187,7 @@ permalink: /detect_attack_RL/
                     <td>
                         <div style="width:1000px; text-align:left; vertical-align:top;font-size:120%">
                             We introduce two tactics to attack agents trained by deep reinforcement learning algorithms
-                            using
-                            adversarial examples: </br>
+                            using adversarial examples: </br>
                             <b>Strategically-timed attack</b>: the adversary aims at minimizing
                             the agent's reward by only attacking the
                             agent at a small subset of time steps in an episode.
@@ -203,15 +195,7 @@ permalink: /detect_attack_RL/
                             detection of the attack by the agent. We propose
                             a novel method to determine when an adversarial
                             example should be crafted and applied. </br>
-                            <b>Enchanting attack</b>: the adversary aims at luring
-                            the agent to a designated target state. This
-                            is achieved by combining a generative model and
-                            a planning algorithm: while the generative model
-                            predicts the future states, the planning algorithm
-                            generates a preferred sequence of actions for luring
-                            the agent. A sequence of adversarial examples are
-                            then crafted to lure the agent to take the preferred
-                            sequence of actions. </br></br>
+                            </br></br>
 
                             We apply the two tactics to
                             the agents trained by the state-of-the-art deep reinforcement
