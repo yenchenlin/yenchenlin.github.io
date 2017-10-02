@@ -71,10 +71,14 @@ permalink: /RL_attack_detection/
             aling-items: center;
           ">
                 <img src="../rl_attack_detection/vt_logo.png" height="90">
+                <img src="../rl_attack_detection/nthu_logo.png" height="80">
+                &nbsp;
                 <center>
-                    <span style="font-size:38px">Detecting Adversarial Attacks on <br> Neural Network Policies with Visual Foresight</span>
+                    <span style="font-size:38px">Detecting Adversarial Attacks on Neural <br> Network Policies with Visual Foresight</span>
                 </center>
+                &nbsp;
                 <img src="../rl_attack_detection/nvidia_logo.png" height="90">
+
             </div>
         </td>
     </tr>
@@ -87,8 +91,9 @@ permalink: /RL_attack_detection/
           <a class="author" target="_blank" href="http://mingyuliu.net/"> Ming-Yu Liu </a> &nbsp; &nbsp;
           <a class="author" target="_blank" href="http://aliensunmin.github.io/"> Min Sun </a> &nbsp; &nbsp;
           <a class="author" target="_blank" href="https://filebox.ece.vt.edu/~jbhuang/"> Jia-Bin Huang </a> &nbsp; &nbsp;
-          <br><br>
+          <br>
           </span>
+          <br><br>
         </td>
     </tr>
     <tr>
@@ -111,32 +116,41 @@ permalink: /RL_attack_detection/
     <tr>
         <td align="center">
           <br>
-          <span style="font-size:200%">Abstract</span>
+          <span style="font-size:220%">Abstract</span>
             <br><br>
             <table>
                 <tbody>
                 <tr>
                     <td>
                         <div style="width:1000px; text-align:left; vertical-align:top;font-size:120%">
-                          We propose a <b>defense mechanism</b> to defend <b>reinforcement learning agents</b> from <b>adversarial example</b> attacks by leveraging <b>temporal information</b>, which is not available in image classification setting.
-                          </br></br>
-                          Specifically, we use an <b>action-conditioned frame prediction</b> module to protect our agents. Our core idea is that the adversarial examples targeting at a neural network-based policy are not effective for the frame prediction model.
-                          By comparing the action distribution produced by a policy from processing the current observed frame to the action distribution produced by the same policy from processing the predicted frame from the action-conditioned frame prediction module, we can detect the presence of adversarial examples.
-                          </br></br>
-                          Beyond detecting the presences of adversarial examples, our method allows the agent to continue performing the task using the predicted frame when the agent is under attack.
-                          We evaluate the performance of our algorithm using five games in Atari 2600. Our results demonstrate that the proposed defense mechanism achieves favorable performance against baseline algorithms in detecting adversarial examples and in earning rewards when the agents are under attack.
+                          Deep reinforcement learning has shown promising results in learning control policies for complex
+                          sequential decision-making tasks.
 
+                          However, these neural network-based policies are known to be vulnerable to adversarial examples.
+
+                          This vulnerability poses a potentially serious threat to safety-critical systems such as autonomous vehicles.
+
+                          In this paper, we propose a defense mechanism to defend reinforcement learning agents from adversarial attacks by leveraging an action-conditioned frame prediction module.
+
+                          Our core idea is that the adversarial examples targeting at a neural network-based policy are not effective for the frame prediction model.
+
+                          By comparing the action distribution produced by a policy from processing the current observed frame to the action distribution produced by the same policy from processing the predicted frame from the action-conditioned frame prediction module, we can detect the presence of adversarial examples.
+
+                          Beyond detecting the presences of adversarial examples, our method allows the agent to continue performing the task using the predicted frame when the agent is under attack.
+
+                          We evaluate the performance of our algorithm using five games in Atari 2600.
+
+                          Our results demonstrate that the proposed defense mechanism achieves favorable performance against baseline algorithms in detecting adversarial examples and in earning rewards when the agents are under attack.
                         </div>
                     </td>
                 </tr>
                 </tbody>
             </table>
 
-            <br><br>
+            <br>
             <table align="left" width="1000px">
                 <tbody>
                 <tr>
-
                     <table width="400px">
                         <tbody>
                         <tr>
@@ -146,12 +160,11 @@ permalink: /RL_attack_detection/
                                 </a>
                             </td>
                         </tr>
-                        <tr></tr>
                         <tr>
-                            <td align="center" style="font-size: 16px">
-                                <b>&nbsp;<a id="download-paper" href="https://drive.google.com/open?id=0B50cbskLVq-ed2F3eUw4SWQxbUU">
+                            <td align="center" style="font-size: 120%">
+                                &nbsp;<a id="download-paper" href="https://drive.google.com/open?id=0B50cbskLVq-ed2F3eUw4SWQxbUU">
                                   Download Paper
-                                </a></b></td>
+                                </a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -163,74 +176,56 @@ permalink: /RL_attack_detection/
     </tr>
     </tbody>
 </table>
-<!-- <iframe width="1920" height="1080" src="https://www.youtube.com/embed/JpZUZ9ZDECE" frameborder="0" allowfullscreen></iframe> -->
 
 </br>
-<!--
-<center>
-    <span style="font-size:150%">Video Overview</span>
-    </br></br>
 
-    <iframe width="853" height="480" src="https://www.youtube.com/embed/gCMNRnWc-s0" frameborder="0"
-            allowfullscreen></iframe>
-</center>
-
-</br></br>
-<center>
-    <span style="font-size:150%">Examples</span>
+<table>
+    <tbody>
     <tr>
-        <td colspan="5" style="font-size:120%">
-            <center>(Click each image to see how our tactics work.)</center>
+        <td>
+            <div style="width:1000px; text-align:left; vertical-align:top;font-size:120%; background-color:#F5F5F5; border-radius:10px; padding-left:20px;">
+              <p class="serif">
+              @inproceedings{LinArxiv17, <br>
+                &nbsp; &nbsp; title     = {Detecting Adversarial Attacks on Neural Network Policies with Visual Foresight}, <br>
+                &nbsp; &nbsp; author    = {Yen-Chen Lin and Ming-Yu Liu and Min Sun and Jia-Bin Huang}, <br>
+                &nbsp; &nbsp; year      = {2017}, <br>
+                &nbsp; &nbsp; booktitle = {Arxiv} <br>
+              }
+              </p>
+            </div>
         </td>
-</center>
+    </tr>
+    </tbody>
+</table>
+<br><br>
 
-</br>
 <center>
-    <span style="font-size:120%"><b>Strategically-timed Attack</b></span>
+    <span style="font-size:220%">Code</span>
     </br></br>
-
-    <td>
-        <video id="ST-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();"
-               data-poster="" poster="">
-            <source src="../rl_attack_detection/ST/Pong.mp4" type="video/mp4">
-        </video>
-    </td>
-    <td>
-        <video id="ST-vid2" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();"
-               data-poster="" poster="">
-            <source src="../rl_attack_detection/ST/ChopperCommand.mp4" type="video/mp4">
-        </video>
-    </td>
-</center>
--->
-<!--
-</br></br>
-
-<center>
-    <span style="font-size:120%"><b>Enchanting Attack</b></span>
+    <div>
+      <img style="vertical-align:middle" src="https://user-images.githubusercontent.com/7057863/31063069-df9d478a-a6fd-11e7-844a-275030993226.png" height="40">
+      <span style=""><a href="https://github.com/yenchenlin/rl-attack-detection" style="font-size:120%">&nbsp &nbsp https://github.com/yenchenlin/rl-attack-detection</a></span>
+  </div>
     </br></br>
-    <td>
-        <video id="enchanting-vid1" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();"
-               data-poster="" poster="">
-            <source src="../rl_attack_detection/Enchanting/Qbert.mp4" type="video/mp4">
-        </video>
-    </td>
-    <td>
-        <video id="enchanting-vid2" class="example-vid lazy-hidden" onclick="this.paused ? this.play() : this.pause();"
-               data-poster="" poster="">
-            <source src="../rl_attack_detection/Enchanting/MsPacman.mp4" type="video/mp4">
-        </video>
-    </td>
 </center>
--->
+
 <center>
-    <span style="font-size:200%">Referecnes</span>
+    <span style="font-size:220%">Results</span>
+    </br></br>
+    <div>
+      <img style="vertical-align:middle" src="https://user-images.githubusercontent.com/7057863/31063173-bccbe418-a6fe-11e7-9d22-40ba44abf023.png" height="650">
+  </div>
+    </br></br>
+</center>
+
+<center>
+    <span style="font-size:220%">Referecnes</span>
     </br></br>
     <li>
     <a href="https://openai.com/blog/adversarial-example-research/" style="font-size:120%">Attacking Machine Learning with Adversarial Examples</a></li> by Ian Goodfellow et al.
     </br>
     </br>
-    <a href="https://arxiv.org/abs/1703.06748" style="font-size:120%">Tactics of Adversarial Attack on Deep Reinforcement Learning Agents</a></li> by Yen-Chen Lin et al.
+    <a href="https://arxiv.org/abs/1703.06748" style="font-size:120%">Tactics of Adversarial Attack on Deep Reinforcement Learning Agents</a></li></br> by Yen-Chen Lin et al.
     </br>
     </br>
     <li><a href="https://github.com/yenchenlin/awesome-adversarial-machine-learning" style="font-size:120%">awesome-adversarial-machine-learning</a></li> by Yen-Chen Lin
@@ -421,3 +416,9 @@ permalink: /RL_attack_detection/
 <div id="point-jawn" style="z-index: 2147483647;"></div>
 </body>
 </html>
+
+<style>
+p.serif {
+    font-family: "Arial";
+}
+</style>
