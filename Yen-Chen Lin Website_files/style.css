@@ -380,3 +380,12 @@ hr.soft {
   margin-bottom: 20px;
   font-weight: 300;
 }
+
+img.noborder {
+    border: 0px;
+    -moz-box-shadow: 0px 0px 0px rgba(0, 0, 0, .0);
+    -webkit-box-shadow: 0px 0px 0px rgba(0, 0, 0, .0);
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, .0);
+    border-radius: 0px 0px 0px 0px;
+    background: none;
+}
