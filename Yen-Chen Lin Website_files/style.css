@@ -220,7 +220,7 @@ li {
   font-size: 28px;
 }
 h2 {
-  text-align: center;
+  text-align: left;
   font-weight: 300;
   font-size: 50px;
   padding: 40px 0px 60px;
@@ -241,8 +241,7 @@ hr.soft {
   margin: 0;
 }
 .pubt {
-  font-size: 22px;
-  font-weight:400;
+  font-size: 18px;
   color: #000;
 }
 @media (max-width: 768px) {
@@ -267,6 +266,7 @@ hr.soft {
 }
 .puba {
   font-size: 18px;
+  font-weight: 300;
   color: #900;
 }
 .pubv {
@@ -284,7 +284,7 @@ hr.soft {
 }
 .pubwrap {
   padding-bottom: 20px;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
   border-bottom: 1px solid #DDD;
 }
 .pub {
