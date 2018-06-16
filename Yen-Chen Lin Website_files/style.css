@@ -308,23 +308,23 @@ hr.soft {
   box-shadow: #BBB 0px 0px 5px 0px;
 }
 .imgb {
-  max-width: 300px;
+  max-width: 200px;
 }
 .imgsm {
   height: 220px;
 }
 .ppt {
-  font-size: 30px;
-  font-weight: 300;
+  font-size: 24px;
   color: #000;
   margin-top: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 .ppd {
   font-size: 18px;
   text-align: justify;
   color: #444;
   font-weight: 300;
+  margin-top: 5px;
 }
 .pp blockquote {
   text-align: right;
