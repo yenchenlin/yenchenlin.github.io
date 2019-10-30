@@ -87,8 +87,10 @@ BODY {
 <h1>How to Learn Affordance with Better Generalization and Sample Efficiency</h1>
 <p>We propose to transfer knowledge learned from static computer vision dataset to improve affordance model's generalization and sample efficiency.
    However, simply transferring ImageNet features doesn't speed up the learning of affordance. The key problem is that by randomly initializing the head of the affordance model, the resulting policy, even with pre-trained latent features, still randomly explores the environments and thus fails to collect useful supervisory signals. 
-   Therefore, we note that it's important to transfer the entire vision model, including both features from the backbone and the visual predictions from the head, to initialize the affordance model. In this case, the resulting initial policy is simply the pre-trained vision model. We show that such vision-guided exploration greatly reduces the number of interactions needed to acquire a new manipulation skill and lead to better generalization.</p>
-<center><video width="600" controls="controls" autoplay="autoplay" loop="loop" onstart="this.play();" onended="this.play();" muted><source src="../CycleGAN Project Page_files/explanation.mp4" type="video/mp4"></video></center>
+   Therefore, we note that it's important to transfer the entire vision model, including both features from the backbone and the visual predictions from the head, to initialize the affordance model. In this case, the resulting initial policy is simply the pre-trained vision model. We show that such vision-guided exploration greatly reduces the number of interactions needed to acquire a new manipulation skill and lead to better generalization.
+</p>
+<p>Play the following video for illustration:</p>
+<center><video width="600" controls="controls" loop="loop" onstart="this.play();" onended="this.play();" muted><source src="../CycleGAN Project Page_files/explanation.mp4" type="video/mp4"></video></center>
 
 
 <h1>Results</h1>
@@ -137,7 +139,7 @@ BODY {
 <br>
 
 <h2>Paper</h2>
-<p><a href="https://drive.google.com/open?id=1rlj-t0wOdnU0ReK-WXUTPaM68zg_uW8C">arxiv 1703.10593</a>,  2019. </p>
+<p><a href="https://drive.google.com/open?id=1rlj-t0wOdnU0ReK-WXUTPaM68zg_uW8C">Technical Report</a>,  2019. </p>
 
 <h2>Citation</h2>
 <p>Lin Yen-Chen, Andy Zeng, Shuran Song, Phillip Isola, and Tsung-Yi Lin. "Learning to See before Learning to Act: Visual Pre-training for Manipulation", 2020.
