@@ -1,0 +1,6 @@
+@inproceedings{yen2019experience,
+  title={Experience-embedded Visual Foresight},
+  author={Yen-Chen, Lin and Bauza, Maria and Isola, Phillip},
+  booktitle={Conference on Robot Learning},
+  year={2019}
+}
