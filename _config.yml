@@ -4,7 +4,7 @@ email: yenchenlin1994@gmail.com
 description: >
   This blog talks about how to make machine learn.
 baseurl: ""
-url: "http://yclin.me"
+url: "http://yenchenlin.me"
 fixedNav: 'true' # true or false
 theme: white # green, blue, orange, purple, grey
 twitterUsername: yenchenlin1994
